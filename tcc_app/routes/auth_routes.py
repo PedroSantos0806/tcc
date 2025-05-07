@@ -1,34 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+# tcc_app/routes/auth_routes.py
+from flask import Blueprint, render_template, redirect, url_for, request, session
 
-auth_bp = Blueprint('auth', __name__)
+auth_routes = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_routes.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-
-        # Login fictício
-        if usuario == 'admin' and senha == '123':
+        usuario = request.form.get('usuario')
+        senha = request.form.get('senha')
+        # Simulação de login
+        if usuario and senha:
             session['usuario'] = usuario
+            print(f'Login realizado por: {usuario}')
             return redirect(url_for('main.index'))
-        else:
-            return render_template('login.html', erro='Credenciais inválidas')
-
     return render_template('login.html')
 
-@auth_bp.route('/cadastro', methods=['GET', 'POST'], endpoint='cadastro')
-def cadastro():
-    if request.method == 'POST':
-        novo_usuario = request.form['usuario']
-        nova_senha = request.form['senha']
-
-        # Cadastro fictício (apenas redireciona pro login)
-        return redirect(url_for('auth.login'))
-
-    return render_template('cadastro.html')
-
-@auth_bp.route('/logout')
+@auth_routes.route('/logout')
 def logout():
     session.pop('usuario', None)
+    print('Usuário deslogado.')
     return redirect(url_for('auth.login'))

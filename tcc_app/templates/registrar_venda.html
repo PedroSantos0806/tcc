@@ -1,12 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Nova Venda</h1>
-
-<p>Formulário de nova venda aqui...</p>
-
-<div class="botoes-navegacao">
-    <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
-    <a href="{{ url_for('main.previsao') }}" class="botao">Ver Previsão</a>
-</div>
+    <h1>Registrar Venda</h1>
+    <form method="POST">
+        <label for="produto">Produto:</label>
+        <input type="text" id="produto" name="produto" required><br>
+        
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" name="quantidade" required><br>
+        <div class="botoes-auxiliares">
+            <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
+            <a href="{{ url_for('main.ver_previsao') }}" class="botao">Ver Previsão</a>
+        </div>
+        
+        
+        <button type="submit">Registrar</button>
+    </form>
 {% endblock %}

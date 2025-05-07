@@ -1,8 +1,7 @@
+<!-- tcc_app/templates/previsao.html -->
 {% extends 'base.html' %}
-{% block title %}Previsão de Demanda{% endblock %}
+
 {% block content %}
-<h1>Previsão de Demanda</h1>
-<p>Aqui vai o gráfico da previsão.</p>
-<a href="{{ url_for('nova_venda') }}">Registrar Nova Venda</a>
-<a href="{{ url_for('cadastrar_produto') }}">Cadastrar Produto</a>
+    <h1>Previsão de Demanda</h1>
+    <a href="{{ url_for('main.registrar_venda') }}">Registrar Nova Venda</a>
 {% endblock %}
