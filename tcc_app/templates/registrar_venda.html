@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Nova Venda</h1>
+
+<p>Formulário de nova venda aqui...</p>
+
+<div class="botoes-navegacao">
+    <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
+    <a href="{{ url_for('main.previsao') }}" class="botao">Ver Previsão</a>
+</div>
+{% endblock %}

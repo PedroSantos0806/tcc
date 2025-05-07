@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sistema{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('home') }}">Início</a>
+        {% if session.get('usuario') %}
+            <a href="{{ url_for('main.index') }}">Início</a>
+            <a href="{{ url_for('main.previsao') }}">Previsão</a>
+            <a href="{{ url_for('main.nova_venda') }}">Nova Venda</a>
+            <a href="{{ url_for('main.cadastrar_produto') }}">Cadastrar Produto</a>
+            <a href="{{ url_for('auth.logout') }}">Sair</a>
+            <span>Bem-vindo, {{ session['usuario'] }}!</span>
+            <a href="{{ url_for('logout') }}">Sair</a>
+        {% endif %}
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
