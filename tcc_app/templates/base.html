@@ -3,26 +3,23 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Sistema{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Previsão de Demanda</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Previsão de Demanda</h1>
+        <h1>Sistema de Previsão de Demanda</h1>
     </header>
+
     <nav>
         <a href="{{ url_for('main.index') }}">Início</a>
-        <a href="{{ url_for('main.previsao') }}">Previsão</a>
-        <a href="{{ url_for('main.cadastrar_produto') }}">Cadastrar Produto</a>
         <a href="{{ url_for('main.registrar_venda') }}">Registrar Venda</a>
-        {% if session.get('usuario') %}
-            <a href="{{ url_for('auth.logout') }}">Sair ({{ session['usuario'] }})</a>
-        {% else %}
-            <a href="{{ url_for('auth.login') }}">Login</a>
-        {% endif %}
+        <a href="{{ url_for('main.previsao') }}">Ver Previsão</a>
+        <a href="{{ url_for('auth.logout') }}">Sair</a>
     </nav>
-    <main>
+
+    <div class="form-container">
         {% block content %}{% endblock %}
-    </main>
+    </div>
 </body>
 </html>

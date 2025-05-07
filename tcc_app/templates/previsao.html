@@ -2,6 +2,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Previsão de Demanda</h1>
-    <a href="{{ url_for('main.registrar_venda') }}">Registrar Nova Venda</a>
+    <h2>Previsão de Demanda</h2>
+    <a class="botao" href="{{ url_for('main.registrar_venda') }}">Registrar Nova Venda</a>
+    <div>
+        {{ grafico|safe }}
+    </div>
 {% endblock %}
