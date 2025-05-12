@@ -1,20 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Registrar Venda</h1>
+    <h2>Registrar Venda</h2>
     <form method="POST">
         <label for="produto">Produto:</label>
-        <input type="text" id="produto" name="produto" required><br>
-        
+        <input type="text" id="produto" name="produto" required>
+
         <label for="quantidade">Quantidade:</label>
-        <input type="number" id="quantidade" name="quantidade" required><br>
+        <input type="number" id="quantidade" name="quantidade" required>
 
         <div class="botoes-auxiliares">
-            <!-- Redireciona para a página inicial ou outra já existente -->
-            <a href="{{ url_for('main.index') }}" class="botao">Cadastrar Produto</a>
+            <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
             <a href="{{ url_for('main.previsao') }}" class="botao">Ver Previsão</a>
         </div>
-        
+
         <button type="submit">Registrar</button>
     </form>
 {% endblock %}

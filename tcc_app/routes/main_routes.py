@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session
+from flask import Blueprint, render_template, redirect, url_for, session, request
 import plotly.graph_objs as go
 import plotly.io as pio
 
@@ -11,9 +11,8 @@ def index():
 @main_bp.route('/previsao')
 def previsao():
     if 'usuario' not in session:
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login'))  # Redireciona para o login
 
-    # Dados fictícios para o gráfico
     dias = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex']
     produto_a = [10, 12, 8, 14, 11]
     produto_b = [5, 7, 6, 4, 8]
@@ -27,9 +26,15 @@ def previsao():
 
     return render_template('previsao.html', grafico=grafico_html)
 
-@main_bp.route('/registrar-venda')
+@main_bp.route('/registrar_venda', methods=['GET', 'POST'])
 def registrar_venda():
-    if 'usuario' not in session:
-        return redirect(url_for('auth.login'))
-
+    if request.method == 'POST':
+        produto = request.form['produto']
+        quantidade = request.form['quantidade']
+        # Aqui você pode salvar no banco, mas como é protótipo, só redirecionamos
+        return redirect(url_for('main.previsao'))
     return render_template('registrar_venda.html')
+
+@main_bp.route('/cadastrar_produto')
+def cadastrar_produto():
+    return render_template('cadastrar_produto.html')

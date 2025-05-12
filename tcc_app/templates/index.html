@@ -1,7 +1,12 @@
-<!-- tcc_app/templates/index.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Bem-vindo ao sistema de previsão de demanda!</h1>
-<p>Use o menu para navegar.</p>
+    <h2>Bem-vindo ao Sistema de Previsão de Vendas com IA</h2>
+    <p>Este sistema utiliza algoritmos de Machine Learning para prever a demanda futura dos seus produtos, auxiliando na gestão de estoque e tomada de decisões estratégicas.</p>
+    
+    <div class="botoes-auxiliares">
+        <a href="{{ url_for('main.previsao') }}" class="botao">Ver Previsão</a>
+        <a href="{{ url_for('main.registrar_venda') }}" class="botao">Registrar Venda</a>
+        <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
+    </div>
 {% endblock %}

@@ -1,25 +1,30 @@
-<!-- tcc_app/templates/base.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Previsão de Demanda</title>
+    <title>Previsão de Vendas com IA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='main.js') }}" defer></script>
 </head>
 <body>
     <header>
-        <h1>Sistema de Previsão de Demanda</h1>
+        <h1>Previsão de Vendas com IA</h1>
     </header>
-
     <nav>
         <a href="{{ url_for('main.index') }}">Início</a>
+        <a href="{{ url_for('main.previsao') }}">Previsão</a>
         <a href="{{ url_for('main.registrar_venda') }}">Registrar Venda</a>
-        <a href="{{ url_for('main.previsao') }}">Ver Previsão</a>
-        <a href="{{ url_for('auth.logout') }}">Sair</a>
+        {% if session.get('usuario') %}
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
     </nav>
-
-    <div class="form-container">
+    <main class="container">
         {% block content %}{% endblock %}
-    </div>
+    </main>
+    <footer>
+        <p>&copy; 2025 - Previsão de Demanda com IA</p>
+    </footer>
 </body>
 </html>

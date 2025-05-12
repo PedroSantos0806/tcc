@@ -1,10 +1,15 @@
-<!-- tcc_app/templates/previsao.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Previsão de Demanda</h2>
-    <a class="botao" href="{{ url_for('main.registrar_venda') }}">Registrar Nova Venda</a>
-    <div>
-        {{ grafico|safe }}
+    <h2>Previsão de Vendas</h2>
+    <p>Abaixo está a previsão de vendas para os próximos dias, com base nos dados históricos.</p>
+
+    <div class="grafico-container">
+        {{ grafico | safe }}
+    </div>
+
+    <div class="botoes-auxiliares">
+        <a href="{{ url_for('main.registrar_venda') }}" class="botao">Registrar Venda</a>
+        <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
     </div>
 {% endblock %}
