@@ -1,15 +1,22 @@
-# tcc_app/__init__.py
 from flask import Flask
-from .routes.main_routes import main_bp  # Importando o Blueprint main_bp
-from .routes.auth_routes import auth_routes  # Importando o Blueprint auth_routes
+import mysql.connector
 
 def create_app():
-    # Criando a instância do app Flask
     app = Flask(__name__)
-    app.secret_key = 'secreta-chave-super-segura'  # Definindo a chave secreta para sessões
+    
+    # Configurações do banco de dados Azure (ajuste com seus dados reais)
+    app.config['DB_CONFIG'] = {
+        'host': 'SEU_HOST.mysql.database.azure.com',
+        'user': 'SEU_USUARIO@SEU_HOST',
+        'password': 'SUA_SENHA',
+        'database': 'SEU_NOME_DO_BANCO',
+        'port': 3306
+    }
 
-    # Registrando os Blueprints
-    app.register_blueprint(main_bp)
-    app.register_blueprint(auth_routes)
+    from .routes import main as main_blueprint
+    app.register_blueprint(main_blueprint)
 
     return app
+
+def get_db_connection(app):
+    return mysql.connector.connect(**app.config['DB_CONFIG'])
