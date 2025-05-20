@@ -1,22 +1,24 @@
+# tcc_app/__init__.py
+
 from flask import Flask
-import mysql.connector
+from .routes.main_routes import main_bp
+from .routes.auth_routes import auth_routes
 
 def create_app():
     app = Flask(__name__)
-    
-    # Configurações do banco de dados Azure (ajuste com seus dados reais)
+    app.secret_key = 'admin123456'
+
+    # Configurações do banco de dados Azure
     app.config['DB_CONFIG'] = {
-        'host': 'SEU_HOST.mysql.database.azure.com',
-        'user': 'SEU_USUARIO@SEU_HOST',
-        'password': 'SUA_SENHA',
-        'database': 'SEU_NOME_DO_BANCO',
+        'host': 'servidortcc.mysql.database.azure.com',
+        'user': 'banco_superuser',
+        'password': 'admin1234#',
+        'database': 'banco_tcc',
         'port': 3306
     }
 
-    from .routes import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    # Registrar os blueprints
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_routes)
 
     return app
-
-def get_db_connection(app):
-    return mysql.connector.connect(**app.config['DB_CONFIG'])
