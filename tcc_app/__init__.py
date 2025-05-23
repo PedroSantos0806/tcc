@@ -24,7 +24,7 @@ def create_app():
 
     @app.before_request
     def require_login():
-        allowed_routes = ['auth.login', 'static']
+        allowed_routes = ['auth.login', 'auth.register', 'static']  # adicione outras rotas públicas se houver
         if not session.get('usuario') and request.endpoint not in allowed_routes:
             return redirect(url_for('auth.login'))
 
