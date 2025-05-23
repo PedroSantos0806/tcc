@@ -1,3 +1,5 @@
+# tcc_app/routes/auth_routes.py
+
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from ..db import get_db
 
@@ -11,11 +13,12 @@ def login():
 
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE nome = %s AND senha = %s", (usuario, senha))
+        cursor.execute("SELECT id, nome FROM usuarios WHERE nome = %s AND senha = %s", (usuario, senha))
         user = cursor.fetchone()
 
         if user:
-            session['usuario'] = usuario
+            session['usuario'] = user[1]
+            session['usuario_id'] = user[0]
             return redirect(url_for('main.index'))
         else:
             flash('Usuário ou senha incorretos', 'danger')
@@ -24,4 +27,5 @@ def login():
 @auth_bp.route('/logout')
 def logout():
     session.pop('usuario', None)
+    session.pop('usuario_id', None)
     return redirect(url_for('auth.login'))

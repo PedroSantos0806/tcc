@@ -1,10 +1,11 @@
+<!-- tcc_app/templates/base.html -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Previsão de Vendas com IA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='main.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </head>
 <body>
     <header>
@@ -15,6 +16,7 @@
             <a href="{{ url_for('main.index') }}">Início</a>
             <a href="{{ url_for('main.previsao') }}">Previsão</a>
             <a href="{{ url_for('main.registrar_venda') }}">Registrar Venda</a> 
+            <a href="{{ url_for('main.cadastrar_produto') }}">Cadastrar Produto</a>
             <a href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}
             <a href="{{ url_for('auth.login') }}">Login</a>
