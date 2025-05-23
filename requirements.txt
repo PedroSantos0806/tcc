@@ -1,3 +1,5 @@
 Flask
-matplotlib
+flask_login
+gunicorn
 mysql-connector-python
+plotly
