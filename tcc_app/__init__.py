@@ -1,31 +1,32 @@
 from flask import Flask, request, redirect, url_for, session
-from flask_login import LoginManager
-from tcc_app.models import db, User
+from os import getenv
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('config.Config')
+    
+    # Configurações (pode ajustar conforme seu config.py)
+    app.config['SECRET_KEY'] = getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
+    app.config['DB_CONFIG'] = {
+        'host': getenv('MYSQL_HOST', 'seu-host-mysql'),
+        'user': getenv('MYSQL_USER', 'seu-usuario'),
+        'password': getenv('MYSQL_PASSWORD', 'sua-senha'),
+        'database': getenv('MYSQL_DB', 'seu-banco'),
+    }
 
-    db.init_app(app)
-
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-
+    # Importa blueprints
     from tcc_app.routes.auth_routes import auth_bp
     from tcc_app.routes.main_routes import main_bp
-
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
+    # Controla acesso, exige login para rotas protegidas
     @app.before_request
     def require_login():
-        allowed_routes = ['auth.login', 'auth.register', 'static']  # adicione outras rotas públicas se houver
-        if not session.get('usuario') and request.endpoint not in allowed_routes:
-            return redirect(url_for('auth.login'))
-
+        allowed_routes = ['auth.login', 'auth.register', 'static']
+        # request.endpoint pode ser None (ex: favicon), então protege
+        if request.endpoint and request.endpoint not in allowed_routes:
+            if not session.get('usuario'):
+                return redirect(url_for('auth.login'))
+    
     return app
