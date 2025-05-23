@@ -3,3 +3,8 @@ flask_login
 gunicorn
 mysql-connector-python
 plotly
+python-dotenv
+pandas
+openpyxl
+flask_sqlalchemy
+flask_migrate
