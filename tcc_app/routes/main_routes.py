@@ -20,7 +20,7 @@ def previsao():
 def produtos():
     return render_template('produtos.html')
 
-@main_bp.route('/vendas')
+@main_bp.route('/vendas', endpoint='registrar_venda')
 @login_required
 def vendas():
     return render_template('vendas.html')

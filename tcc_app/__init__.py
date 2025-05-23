@@ -1,24 +1,25 @@
-# tcc_app/__init__.py
-
 from flask import Flask
-from .routes.main_routes import main_bp
-from .routes.auth_routes import auth_routes
+from flask_login import LoginManager
+from tcc_app.models import db, User
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = 'admin123456'
+    app.config.from_object('config.Config')
 
-    # Configurações do banco de dados Azure
-    app.config['DB_CONFIG'] = {
-        'host': 'servidortcc.mysql.database.azure.com',
-        'user': 'banco_superuser',
-        'password': 'admin1234#',
-        'database': 'banco_tcc',
-        'port': 3306
-    }
+    db.init_app(app)
 
-    # Registrar os blueprints
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    from tcc_app.routes.auth_routes import auth_bp
+    from tcc_app.routes.main_routes import main_bp
+
+    app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(auth_routes)
 
     return app
