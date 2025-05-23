@@ -1,5 +1,3 @@
-# tcc_app/routes/auth_routes.py
-
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 from ..db import get_db
 

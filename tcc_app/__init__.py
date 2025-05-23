@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, redirect, url_for, session
 from flask_login import LoginManager
 from tcc_app.models import db, User
 
@@ -21,5 +21,11 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+
+    @app.before_request
+    def require_login():
+        allowed_routes = ['auth.login', 'static']
+        if not session.get('usuario') and request.endpoint not in allowed_routes:
+            return redirect(url_for('auth.login'))
 
     return app

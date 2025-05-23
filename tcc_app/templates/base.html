@@ -11,10 +11,10 @@
         <h1>Previsão de Vendas com IA</h1>
     </header>
     <nav>
-        <a href="{{ url_for('main.index') }}">Início</a>
-        <a href="{{ url_for('main.previsao') }}">Previsão</a>
-        <a href="{{ url_for('main.vendas') }}">Registrar Venda</a> 
         {% if session.get('usuario') %}
+            <a href="{{ url_for('main.index') }}">Início</a>
+            <a href="{{ url_for('main.previsao') }}">Previsão</a>
+            <a href="{{ url_for('main.registrar_venda') }}">Registrar Venda</a> 
             <a href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}
             <a href="{{ url_for('auth.login') }}">Login</a>
