@@ -1,15 +1,5 @@
-{% extends 'base.html' %}
+{% extends "home.html" %}
 {% block content %}
-<div class="form-container">
-    <h2>Previsão de Demanda</h2>
-
-    <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
-        <a href="{{ url_for('main.registrar_venda') }}" class="botao">Registrar Venda</a>
-    </div>
-
-    <div class="grafico-container">
-        {{ grafico|safe }}
-    </div>
-</div>
+<h2>Previsão de Demanda</h2>
+<p>Em breve, você verá aqui previsões baseadas nas vendas cadastradas.</p>
 {% endblock %}

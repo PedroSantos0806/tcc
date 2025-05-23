@@ -1,15 +1,5 @@
-<!-- tcc_app/templates/cadastrar_produto.html -->
-{% extends 'base.html' %}
-
+{% extends "home.html" %}
 {% block content %}
 <h2>Cadastrar Produto</h2>
-
-<form method="POST" class="formulario">
-    <label for="nome">Nome do Produto:</label>
-    <input type="text" name="nome" required>
-
-    <button type="submit" class="botao">Cadastrar</button>
-</form>
-
-<a href="{{ url_for('main.registrar_venda') }}" class="botao secundario">Registrar venda de produto</a>
+<p>Funcionalidade em desenvolvimento.</p>
 {% endblock %}

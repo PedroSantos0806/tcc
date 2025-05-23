@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Início - Previsão de Demanda</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="nav">
+        <span>Bem-vindo, {{ nome }}</span>
+        <a href="{{ url_for('main.ver_previsao') }}">Ver Previsão</a>
+        <a href="{{ url_for('main.cadastrar_produto') }}">Cadastrar Produto</a>
+        <a href="{{ url_for('main.cadastrar_venda') }}">Cadastrar Venda</a>
+        <a href="{{ url_for('auth.logout') }}">Sair</a>
+    </div>
+    <div class="content">
+        <h2>O que você deseja fazer?</h2>
+        <p>Escolha uma das opções acima para gerenciar seu estoque ou ver previsões de venda.</p>
+    </div>
+</body>
+</html>

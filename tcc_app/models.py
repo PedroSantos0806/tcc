@@ -1,24 +1,19 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
+from db import get_db
 
-db = SQLAlchemy()
+def obter_usuario_por_email(email):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+    return cursor.fetchone()
 
-class User(UserMixin, db.Model):
-    __tablename__ = 'usuarios'
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    email = db.Column(db.String(100), unique=True)
-    senha = db.Column(db.String(200))
+def inserir_usuario(nome, email, senha):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, senha))
+    db.commit()
 
-class Produto(db.Model):
-    __tablename__ = 'produtos'
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
-
-class Venda(db.Model):
-    __tablename__ = 'vendas'
-    id = db.Column(db.Integer, primary_key=True)
-    produto_id = db.Column(db.Integer, db.ForeignKey('produtos.id'))
-    quantidade = db.Column(db.Integer)
-    data = db.Column(db.Date)
+def obter_usuario_por_id(usuario_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM usuarios WHERE id = %s", (usuario_id,))
+    return cursor.fetchone()
