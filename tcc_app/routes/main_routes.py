@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session
-from tcc_app.utils import login_required  # Corrigido import
+from tcc_app.utils import login_required
 
 main_bp = Blueprint('main_bp', __name__)
 

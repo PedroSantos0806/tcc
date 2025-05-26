@@ -1,13 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from tcc_app.db import get_db_connection
-from tcc_app.utils import login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth_bp = Blueprint('auth_bp', __name__)
-
-@auth_bp.route('/')
-def home():
-    return redirect(url_for('auth_bp.login'))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -23,7 +18,7 @@ def login():
         if usuario and check_password_hash(usuario['senha'], senha):
             session['usuario_id'] = usuario['id']
             session['usuario_nome'] = usuario['nome']
-            return redirect(url_for('main_bp.dashboard'))  # ajustado para redirecionar via main_bp
+            return redirect(url_for('main_bp.home'))
         else:
             return render_template('login.html', erro='E-mail ou senha incorretos.')
 
@@ -39,11 +34,11 @@ def cadastro():
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hash_senha))
+        cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)",
+                       (nome, email, hash_senha))
         conn.commit()
         cursor.close()
         conn.close()
-
         return redirect(url_for('auth_bp.login'))
 
     return render_template('cadastro.html')

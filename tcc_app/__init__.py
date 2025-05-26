@@ -1,31 +1,34 @@
 from flask import Flask, request, redirect, url_for, session
 from os import getenv
+from dotenv import load_dotenv
+from tcc_app.db import close_db_connection
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = getenv('SECRET_KEY', 'chave-padrao')
 
-    # Configurações sensíveis
-    app.config['SECRET_KEY'] = getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
     app.config['DB_CONFIG'] = {
-        'host': getenv('MYSQL_HOST', 'localhost'),
-        'user': getenv('MYSQL_USER', 'root'),
-        'password': getenv('MYSQL_PASSWORD', 'senha'),
-        'database': getenv('MYSQL_DB', 'banco'),
+        'host': getenv('DB_HOST'),
+        'user': getenv('DB_USER'),
+        'password': getenv('DB_PASSWORD'),
+        'database': getenv('DB_NAME'),
+        'port': int(getenv('DB_PORT', 3306))
     }
 
-    # Importa e registra Blueprints
     from tcc_app.routes.auth_routes import auth_bp
     from tcc_app.routes.main_routes import main_bp
 
-    app.register_blueprint(auth_bp, url_prefix='/auth')  # URLs: /auth/login, /auth/cadastro, etc.
-    app.register_blueprint(main_bp)                      # URLs: /, /ver_previsao, etc.
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(main_bp)
 
-    # Middleware de verificação de login
     @app.before_request
     def require_login():
-        allowed_routes = ['auth_bp.login', 'auth_bp.cadastro', 'static']
-        if request.endpoint and request.endpoint not in allowed_routes:
-            if not session.get('usuario_id'):
-                return redirect(url_for('auth_bp.login'))
+        allowed = ['auth_bp.login', 'auth_bp.cadastro', 'static']
+        if request.endpoint not in allowed and 'usuario_id' not in session:
+            return redirect(url_for('auth_bp.login'))
+
+    app.teardown_appcontext(close_db_connection)
 
     return app
