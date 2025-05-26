@@ -13,7 +13,7 @@
             <input type="password" name="senha" placeholder="Senha" required>
             <button type="submit">Entrar</button>
         </form>
-        <p>Não tem uma conta? <a href="{{ url_for('auth.cadastro') }}">Cadastre-se</a></p>
+        <p>Não tem uma conta? <a href="{{ url_for('auth_bp.cadastro') }}">Cadastre-se</a>
         {% if erro %}
             <p class="erro">{{ erro }}</p>
         {% endif %}
