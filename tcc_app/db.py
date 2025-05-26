@@ -4,16 +4,20 @@ from flask import current_app, g
 
 def get_db_connection():
     if 'db_conn' not in g:
-        # Lê variáveis de ambiente definidas no Azure ou no .env local
+        # Caminho para o certificado SSL
+        ssl_ca_path = os.path.join(os.getcwd(), 'tcc_app', 'certs', 'DigiCertGlobalRootCA.pem')
+
         config = {
             'user': os.environ.get('DB_USER'),
             'password': os.environ.get('DB_PASSWORD'),
             'host': os.environ.get('DB_HOST'),
             'database': os.environ.get('DB_NAME'),
             'port': int(os.environ.get('DB_PORT', 3306)),
-            'ssl_disabled': True  # Porque você desabilitou require_secure_transport
+            'ssl_ca': ssl_ca_path
         }
+
         g.db_conn = mysql.connector.connect(**config)
+
     return g.db_conn
 
 def close_db_connection(e=None):
