@@ -1,10 +1,12 @@
+import os
 from flask import Flask, request, redirect, url_for, session
-from config import Config
 from tcc_app.db import close_db_connection
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)  # Carrega configurações do config.py
+
+    # Configuração diretamente pelas variáveis de ambiente
+    app.secret_key = os.environ.get('SECRET_KEY', 'fallback_key')
 
     from tcc_app.routes.auth_routes import auth_bp
     from tcc_app.routes.main_routes import main_bp
