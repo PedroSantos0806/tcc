@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, session
-from tcc_app.config import Config
+from config import Config
 from tcc_app.db import close_db_connection
 
 def create_app():
