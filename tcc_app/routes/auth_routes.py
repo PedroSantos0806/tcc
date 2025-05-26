@@ -1,15 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from tcc_app.db import get_db_connection
 from tcc_app.utils import login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
+auth_bp = Blueprint('auth_bp', __name__)
 
-@app.route('/')
+@auth_bp.route('/')
 def home():
-    return redirect(url_for('login'))
+    return redirect(url_for('auth_bp.login'))
 
-@app.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
@@ -23,13 +23,13 @@ def login():
         if usuario and check_password_hash(usuario['senha'], senha):
             session['usuario_id'] = usuario['id']
             session['usuario_nome'] = usuario['nome']
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('main_bp.dashboard'))  # ajustado para redirecionar via main_bp
         else:
             return render_template('login.html', erro='E-mail ou senha incorretos.')
 
     return render_template('login.html')
 
-@app.route('/cadastro', methods=['GET', 'POST'])
+@auth_bp.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
         nome = request.form['nome']
@@ -44,16 +44,11 @@ def cadastro():
         cursor.close()
         conn.close()
 
-        return redirect(url_for('login'))
+        return redirect(url_for('auth_bp.login'))
 
     return render_template('cadastro.html')
 
-@app.route('/logout')
+@auth_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard.html')
+    return redirect(url_for('auth_bp.login'))
