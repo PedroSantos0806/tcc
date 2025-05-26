@@ -14,6 +14,7 @@ def login():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
         usuario = cursor.fetchone()
+        cursor.close()
 
         if usuario and check_password_hash(usuario['senha'], senha):
             session['usuario_id'] = usuario['id']
@@ -33,12 +34,20 @@ def cadastro():
         hash_senha = generate_password_hash(senha)
 
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
+
+        # Verifica se e-mail já existe
+        cursor.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
+        existente = cursor.fetchone()
+
+        if existente:
+            cursor.close()
+            return render_template('cadastro.html', erro='E-mail já cadastrado.')
+
         cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)",
                        (nome, email, hash_senha))
         conn.commit()
         cursor.close()
-        conn.close()
         return redirect(url_for('auth_bp.login'))
 
     return render_template('cadastro.html')
