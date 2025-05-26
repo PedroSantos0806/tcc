@@ -2,9 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from models import obter_usuario_por_email, inserir_usuario
 import hashlib
 
-auth = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth_bp', __name__)
 
-@auth.route('/login', methods=['GET', 'POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     erro = None
     if request.method == 'POST':
@@ -14,12 +14,12 @@ def login():
         if usuario and usuario['senha'] == senha:
             session['usuario_id'] = usuario['id']
             session['usuario_nome'] = usuario['nome']
-            return redirect(url_for('main.home'))
+            return redirect(url_for('main_bp.home'))
         else:
             erro = 'E-mail ou senha incorretos.'
     return render_template('login.html', erro=erro)
 
-@auth.route('/cadastro', methods=['GET', 'POST'])
+@auth_bp.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     erro = None
     if request.method == 'POST':
@@ -30,10 +30,10 @@ def cadastro():
             erro = 'Já existe um usuário com este e-mail.'
         else:
             inserir_usuario(nome, email, senha)
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('auth_bp.login'))
     return render_template('cadastro.html', erro=erro)
 
-@auth.route('/logout')
+@auth_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('auth_bp.login'))
