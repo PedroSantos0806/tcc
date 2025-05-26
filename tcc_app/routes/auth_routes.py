@@ -33,23 +33,16 @@ def cadastro():
         senha = request.form['senha']
         hash_senha = generate_password_hash(senha)
 
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Verifica se e-mail já existe
-        cursor.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
-        existente = cursor.fetchone()
-
-        if existente:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hash_senha))
+            conn.commit()
             cursor.close()
-            return render_template('cadastro.html', erro='E-mail já cadastrado.')
-
-        cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)",
-                       (nome, email, hash_senha))
-        conn.commit()
-        cursor.close()
-        return redirect(url_for('auth_bp.login'))
-
+            return redirect(url_for('auth_bp.login'))
+        except Exception as e:
+            print(f"Erro ao cadastrar: {e}")
+            return render_template('cadastro.html', erro='Erro ao cadastrar usuário.')
     return render_template('cadastro.html')
 
 @auth_bp.route('/logout')
