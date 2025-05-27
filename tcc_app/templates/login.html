@@ -7,19 +7,29 @@
 </head>
 <body class="login-page">
     <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST">
-            <input type="email" name="email" placeholder="E-mail" required>
-            <input type="password" name="senha" placeholder="Senha" required>
+        <h2>Entrar no sistema</h2>
+
+        {% if erro %}
+            <div class="erro-box">
+                <p class="erro-msg">{{ erro }}</p>
+            </div>
+        {% endif %}
+
+        <form method="POST" class="form-box">
+            <label for="email">E-mail</label>
+            <input type="email" name="email" id="email" placeholder="seu@email.com" required>
+
+            <label for="senha">Senha</label>
+            <input type="password" name="senha" id="senha" placeholder="Digite sua senha" required>
+
             <button type="submit">Entrar</button>
         </form>
-        <p>Não tem uma conta? <a href="{{ url_for('auth_bp.cadastro') }}">Cadastre-se</a>
-        {% if erro %}
-            <p class="erro">{{ erro }}</p>
-        {% endif %}
+
+        <p class="login-link">Não tem uma conta? <a href="{{ url_for('auth_bp.cadastro') }}">Cadastre-se</a></p>
+
         <div class="explicacao">
             <h3>Como funciona o sistema?</h3>
-            <p>Este sistema usa inteligência artificial para prever a demanda futura dos seus produtos com base nas vendas anteriores. Com isso, você pode se preparar melhor, evitar estoques excessivos ou faltas e tomar decisões mais inteligentes.</p>
+            <p>Este sistema usa inteligência artificial para prever a demanda futura dos seus produtos com base nas vendas anteriores. Assim, você evita excessos ou faltas no estoque e toma decisões mais inteligentes.</p>
         </div>
     </div>
 </body>
