@@ -8,8 +8,8 @@ auth_bp = Blueprint('auth_bp', __name__)
 def login():
     erro = None
     if request.method == 'POST':
-        email = request.form.get('email')
-        senha = request.form.get('senha')
+        email = request.form.get('email') or ''
+        senha = request.form.get('senha') or ''
 
         try:
             conn = get_db_connection()
@@ -25,7 +25,7 @@ def login():
             else:
                 erro = 'E-mail ou senha incorretos.'
         except Exception as e:
-            print(f"Erro ao fazer login: {e}")
+            print("Erro ao fazer login:", str(e))
             erro = 'Erro interno. Tente novamente.'
 
     return render_template('login.html', erro=erro)
@@ -34,24 +34,27 @@ def login():
 def cadastro():
     erro = None
     if request.method == 'POST':
-        nome = request.form.get('nome')
-        email = request.form.get('email')
-        senha = request.form.get('senha')
+        nome = request.form.get('nome') or ''
+        email = request.form.get('email') or ''
+        senha = request.form.get('senha') or ''
 
-        if not nome or not email or not senha:
+        if not nome.strip() or not email.strip() or not senha.strip():
             erro = 'Todos os campos são obrigatórios.'
         else:
             try:
                 hash_senha = generate_password_hash(senha)
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hash_senha))
+                cursor.execute(
+                    "INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)",
+                    (nome, email, hash_senha)
+                )
                 conn.commit()
                 cursor.close()
                 return redirect(url_for('auth_bp.login'))
             except Exception as e:
-                print(f"Erro ao cadastrar: {e}")
-                erro = 'Erro ao cadastrar usuário.'
+                print("Erro ao cadastrar:", str(e))
+                erro = 'Erro ao cadastrar usuário. Verifique se o e-mail já está em uso.'
 
     return render_template('cadastro.html', erro=erro)
 
