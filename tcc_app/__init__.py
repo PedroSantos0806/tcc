@@ -1,27 +1,18 @@
-import os
-from flask import Flask, request, redirect, url_for, session
+from flask import Flask
 from tcc_app.db import close_db_connection
+from tcc_app.routes.auth_routes import auth_bp
+from tcc_app.routes.main_routes import main_bp
+import os
 
 def create_app():
     app = Flask(__name__)
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
-    # Configuração diretamente pelas variáveis de ambiente
-    app.secret_key = os.environ.get('SECRET_KEY', 'fallback_key')
-
-    from tcc_app.routes.auth_routes import auth_bp
-    from tcc_app.routes.main_routes import main_bp
-
-    app.register_blueprint(auth_bp, url_prefix='/auth')
+    # Registrar rotas
+    app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-    # Verificação de login para rotas protegidas
-    @app.before_request
-    def require_login():
-        allowed = ['auth_bp.login', 'auth_bp.cadastro', 'static']
-        if request.endpoint not in allowed and 'usuario_id' not in session:
-            return redirect(url_for('auth_bp.login'))
-
-    # Fecha conexão com banco ao encerrar a requisição
+    # Encerrar conexão com banco após request
     app.teardown_appcontext(close_db_connection)
 
     return app
