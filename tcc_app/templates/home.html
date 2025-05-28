@@ -8,10 +8,10 @@
 <body>
     <div class="nav">
         <span>Bem-vindo, {{ nome }}</span>
-        <a href="{{ url_for('main.ver_previsao') }}">Ver Previsão</a>
-        <a href="{{ url_for('main.cadastrar_produto') }}">Cadastrar Produto</a>
-        <a href="{{ url_for('main.cadastrar_venda') }}">Cadastrar Venda</a>
-        <a href="{{ url_for('auth.logout') }}">Sair</a>
+        <a href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
+        <a href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar Produto</a>
+        <a href="{{ url_for('main_bp.cadastrar_venda') }}">Cadastrar Venda</a>
+        <a href="{{ url_for('auth_bp.logout') }}">Sair</a>
     </div>
     <div class="content">
         <h2>O que você deseja fazer?</h2>
