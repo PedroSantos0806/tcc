@@ -1,22 +1,24 @@
-<!-- tcc_app/templates/registrar_venda.html -->
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-<h2>Registrar Venda</h2>
-
-<form method="POST" class="formulario">
-    <label for="produto">Produto:</label>
-    <select name="produto" required>
+<h1>Registrar Venda</h1>
+<form method="post">
+    <label>Produto:</label><br>
+    <select name="produto_id">
         {% for produto in produtos %}
-            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+            <option value="{{ produto.id }}">{{ produto.nome }} — R$ {{ produto.preco }}</option>
         {% endfor %}
-    </select>
-
-    <label for="quantidade">Quantidade:</label>
-    <input type="number" name="quantidade" required>
-
-    <button type="submit" class="botao">Registrar</button>
+    </select><br>
+    <label>Quantidade:</label><br>
+    <input type="number" name="quantidade" min="1"><br>
+    <button type="submit">Registrar</button>
 </form>
-
-<a href="{{ url_for('main.cadastrar_produto') }}" class="botao secundario">Cadastrar novo produto</a>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 {% endblock %}
