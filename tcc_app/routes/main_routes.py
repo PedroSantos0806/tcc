@@ -21,4 +21,4 @@ def cadastrar_produto():
 @main_bp.route('/cadastrar_venda')
 @login_required
 def cadastrar_venda():
-    return render_template('cadastrar_venda.html')
+    return render_template('registrar_venda.html')
