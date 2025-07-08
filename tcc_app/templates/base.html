@@ -10,7 +10,7 @@
     <header>
         <h1>Previsão de Vendas com IA</h1>
     </header>
-    <nav>
+    <nav class="nav">
         {% if session.get('usuario_id') %}
             <a href="{{ url_for('main_bp.home') }}">Início</a>
             <a href="{{ url_for('main_bp.ver_previsao') }}">Previsão</a>
@@ -21,7 +21,7 @@
             <a href="{{ url_for('auth_bp.login') }}">Login</a>
         {% endif %}
     </nav>
-    <main class="container">
+    <main class="content">
         {% block content %}{% endblock %}
     </main>
     <footer>

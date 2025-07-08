@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Cadastrar Produto</h1>
-<form method="post">
-    <label>Nome do Produto:</label><br>
-    <input type="text" name="nome"><br>
-    <label>Preço (R$):</label><br>
-    <input type="number" step="0.01" name="preco"><br>
+<form method="post" class="form-box">
+    <label>Nome do Produto:</label>
+    <input type="text" name="nome" required>
+
+    <label>Preço (R$):</label>
+    <input type="number" step="0.01" name="preco" required>
+
     <button type="submit">Cadastrar</button>
 </form>
+
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul>

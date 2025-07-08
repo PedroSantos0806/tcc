@@ -13,7 +13,7 @@ body {
     min-height: 100vh;
 }
 
-/* Página de login/cadastro centralizada */
+/* Login centralizado */
 .login-page {
     display: flex;
     justify-content: center;
@@ -22,7 +22,6 @@ body {
     height: 100vh;
 }
 
-/* Container do formulário */
 .login-container {
     background: #1e293b;
     padding: 32px;
@@ -31,21 +30,16 @@ body {
     width: 100%;
     max-width: 400px;
     text-align: center;
-    transition: all 0.3s ease-in-out;
 }
 
-/* Títulos */
 .login-container h2 {
     margin-bottom: 20px;
     color: #38bdf8;
 }
 
-/* Formulário */
 .form-box {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    text-align: left;
 }
 
 label {
@@ -55,7 +49,7 @@ label {
     color: #cbd5e1;
 }
 
-input {
+input, select {
     padding: 12px;
     border-radius: 8px;
     border: 1px solid #334155;
@@ -66,11 +60,10 @@ input {
     transition: border-color 0.3s;
 }
 
-input:focus {
+input:focus, select:focus {
     border-color: #0ea5e9;
 }
 
-/* Botões */
 button {
     background-color: #0ea5e9;
     color: white;
@@ -88,7 +81,6 @@ button:hover {
     background-color: #0284c7;
 }
 
-/* Erro */
 .erro-box {
     background-color: #ffe6e6;
     border: 1px solid #ff4d4d;
@@ -96,30 +88,20 @@ button:hover {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 16px;
-    font-weight: bold;
 }
 
 .erro-msg {
     margin: 0;
-    font-size: 0.95em;
 }
 
-/* Link para login/cadastro */
 .login-link {
     margin-top: 16px;
-    font-size: 0.95rem;
 }
 
 .login-link a {
     color: #38bdf8;
-    text-decoration: none;
 }
 
-.login-link a:hover {
-    text-decoration: underline;
-}
-
-/* Caixa explicativa */
 .explicacao {
     margin-top: 24px;
     background: #334155;
@@ -127,22 +109,20 @@ button:hover {
     border-radius: 10px;
     font-size: 0.95rem;
     text-align: left;
-    color: #e2e8f0;
 }
 
 .explicacao h3 {
     color: #0ea5e9;
     margin-bottom: 10px;
-    font-size: 1.1rem;
 }
 
-/* Navegação */
+/* Navbar */
 .nav {
     background: #1e293b;
     padding: 15px 20px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
     border-bottom: 1px solid #334155;
 }
 
@@ -159,23 +139,45 @@ button:hover {
     text-decoration: underline;
 }
 
-/* Conteúdo da página */
 .content {
     padding: 40px 20px;
 }
 
-/* Responsividade */
-@media (max-width: 480px) {
-    .login-container {
-        padding: 24px;
-        border-radius: 12px;
-    }
+.table-padrao {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
 
-    .nav {
-        flex-direction: column;
-    }
+.table-padrao th, .table-padrao td {
+    border: 1px solid #334155;
+    padding: 12px;
+    text-align: left;
+}
 
-    .nav a {
-        margin: 8px 0;
-    }
+.table-padrao th {
+    background-color: #1e293b;
+    color: #0ea5e9;
+}
+
+.table-padrao tr:nth-child(even) {
+    background-color: #1e293b;
+}
+
+.senha-box {
+    display: flex;
+    align-items: center;
+}
+
+.senha-box input {
+    flex: 1;
+}
+
+.toggle-senha {
+    margin-left: 8px;
+    background: transparent;
+    color: #38bdf8;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
 }

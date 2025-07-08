@@ -1,17 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Registrar Venda</h1>
-<form method="post">
-    <label>Produto:</label><br>
-    <select name="produto_id">
+<form method="post" class="form-box">
+    <label>Produto:</label>
+    <select name="produto_id" required>
         {% for produto in produtos %}
             <option value="{{ produto.id }}">{{ produto.nome }} — R$ {{ produto.preco }}</option>
         {% endfor %}
-    </select><br>
-    <label>Quantidade:</label><br>
-    <input type="number" name="quantidade" min="1"><br>
+    </select>
+
+    <label>Quantidade:</label>
+    <input type="number" name="quantidade" min="1" required>
+
     <button type="submit">Registrar</button>
 </form>
+
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul>
