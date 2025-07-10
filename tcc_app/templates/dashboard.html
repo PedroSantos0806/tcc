@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+<form method="post">
+    <label>Categoria:</label>
+    <select name="categoria" onchange="this.form.submit()">
+        <option value="">Selecione</option>
+        {% for cat in categorias %}
+            <option value="{{ cat }}" {% if cat == request.form.categoria %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+    </select>
+
+    {% if produtos %}
+        <label>Produto:</label>
+        <select name="produto">
+            <option value="">Selecione</option>
+            {% for prod in produtos %}
+                <option value="{{ prod.id }}" {% if prod.id|string == request.form.produto %}selected{% endif %}>{{ prod.nome }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filtrar</button>
+    {% endif %}
+</form>
+
+{% if vendas %}
+    <h3>Vendas do Produto Selecionado</h3>
+    <ul>
+    {% for venda in vendas %}
+        <li>{{ venda.nome }} — Total vendido: {{ venda.total_vendido }} — Previsão: {{ previsao }}</li>
+    {% endfor %}
+    </ul>
+{% elif previsao %}
+    <p>Previsão estimada: {{ previsao }}</p>
+{% endif %}
+{% endblock %}

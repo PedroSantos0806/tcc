@@ -15,20 +15,24 @@ def cadastrar_produto():
     if request.method == 'POST':
         nome = request.form.get('nome')
         preco = request.form.get('preco')
+        quantidade = request.form.get('quantidade')
         categoria = request.form.get('categoria')
         subcategoria = request.form.get('subcategoria')
         tamanho = request.form.get('tamanho')
+        data_chegada = request.form.get('data_chegada')
 
-        if not nome or not preco or not categoria:
-            flash('Nome, preço e categoria são obrigatórios.')
+        # Validações básicas
+        if not nome or not preco or not categoria or quantidade is None or not data_chegada:
+            flash('Nome, preço, quantidade, categoria e data de chegada são obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO produtos (nome, preco, categoria, subcategoria, tamanho, usuario_id) VALUES (%s, %s, %s, %s, %s, %s)",
-                (nome, preco, categoria, subcategoria, tamanho, session['usuario_id'])
+                "INSERT INTO produtos (nome, preco, quantidade, categoria, subcategoria, tamanho, data_chegada, usuario_id) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (nome, preco, quantidade, categoria, subcategoria, tamanho, data_chegada, session['usuario_id'])
             )
             conn.commit()
             cursor.close()
@@ -105,3 +109,52 @@ def ver_previsao():
     cursor.close()
     conn.close()
     return render_template('ver_previsao.html', produtos=produtos)
+
+@main_bp.route('/ver_estoque')
+@login_required
+def ver_estoque():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM produtos WHERE usuario_id = %s", (session['usuario_id'],))
+    produtos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template("ver_estoque.html", produtos=produtos)
+
+@main_bp.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id = %s", (session["usuario_id"],))
+    categorias = [row['categoria'] for row in cursor.fetchall()]
+
+    produtos = []
+    vendas = []
+
+    categoria_selecionada = request.form.get("categoria")
+    produto_selecionado = request.form.get("produto")
+
+    if categoria_selecionada:
+        cursor.execute("SELECT * FROM produtos WHERE categoria = %s AND usuario_id = %s", (categoria_selecionada, session["usuario_id"]))
+        produtos = cursor.fetchall()
+
+    if produto_selecionado:
+        # Aqui colocaremos a previsão manual
+        previsao = 100  # Número fictício por enquanto
+        cursor.execute("""
+            SELECT p.nome, SUM(iv.quantidade) as total_vendido
+            FROM itens_venda iv
+            JOIN produtos p ON iv.produto_id = p.id
+            JOIN vendas v ON iv.venda_id = v.id
+            WHERE p.id = %s AND v.usuario_id = %s
+            GROUP BY p.id
+        """, (produto_selecionado, session["usuario_id"]))
+        vendas = cursor.fetchall()
+    else:
+        previsao = None
+
+    cursor.close()
+    conn.close()
+    return render_template("dashboard.html", categorias=categorias, produtos=produtos, vendas=vendas, previsao=previsao)

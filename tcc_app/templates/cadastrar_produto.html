@@ -8,32 +8,29 @@
     <label>Preço (R$):</label>
     <input type="number" step="0.01" name="preco" required>
 
+    <label>Quantidade em estoque:</label>
+    <input type="number" name="quantidade" min="0" required>
+
     <label>Categoria:</label>
-    <select id="categoria" name="categoria" required>
+    <select name="categoria" id="categoriaSelect" required onchange="mostrarSubcategoria()">
         <option value="">Selecione</option>
         <option value="Vestuário">Vestuário</option>
         <option value="Tecnologia">Tecnologia</option>
         <option value="Alimentos">Alimentos</option>
     </select>
 
-    <label>Subcategoria:</label>
-    <select id="subcategoria" name="subcategoria">
-        <option value="">Selecione uma categoria primeiro</option>
-    </select>
+    <div id="divSubcategoria" style="display:none;">
+        <label>Subcategoria:</label>
+        <select name="subcategoria" id="subcategoriaSelect">
+            <option value="">Selecione</option>
+        </select>
+    </div>
 
     <label>Tamanho:</label>
-    <select id="tamanho" name="tamanho">
-        <option value="">Opcional</option>
-        <option value="PP">PP</option>
-        <option value="P">P</option>
-        <option value="M">M</option>
-        <option value="G">G</option>
-        <option value="GG">GG</option>
-        <option value="38">38</option>
-        <option value="40">40</option>
-        <option value="42">42</option>
-        <option value="44">44</option>
-    </select>
+    <input type="text" name="tamanho" placeholder="Ex: 38 ou M ou G" required>
+
+    <label>Data de chegada:</label>
+    <input type="date" name="data_chegada" required>
 
     <button type="submit">Cadastrar</button>
 </form>
@@ -49,27 +46,31 @@
 {% endwith %}
 
 <script>
-document.getElementById('categoria').addEventListener('change', function() {
-    var subcategoria = document.getElementById('subcategoria');
-    var categoria = this.value;
+function mostrarSubcategoria() {
+    var categoria = document.getElementById("categoriaSelect").value;
+    var div = document.getElementById("divSubcategoria");
+    var subcategoria = document.getElementById("subcategoriaSelect");
+    subcategoria.innerHTML = '';  // Limpa opções
 
-    subcategoria.innerHTML = '';
+    if (categoria !== "") {
+        div.style.display = "block";
 
-    if (categoria === 'Vestuário') {
-        subcategoria.innerHTML += '<option value="Camisa">Camisa</option>';
-        subcategoria.innerHTML += '<option value="Calça">Calça</option>';
-        subcategoria.innerHTML += '<option value="Tênis">Tênis</option>';
-    } else if (categoria === 'Tecnologia') {
-        subcategoria.innerHTML += '<option value="Celular">Celular</option>';
-        subcategoria.innerHTML += '<option value="Notebook">Notebook</option>';
-        subcategoria.innerHTML += '<option value="Fone">Fone</option>';
-    } else if (categoria === 'Alimentos') {
-        subcategoria.innerHTML += '<option value="Bebida">Bebida</option>';
-        subcategoria.innerHTML += '<option value="Salgado">Salgado</option>';
-        subcategoria.innerHTML += '<option value="Doce">Doce</option>';
+        if (categoria === 'Vestuário') {
+            subcategoria.innerHTML += '<option value="Camisa">Camisa</option>';
+            subcategoria.innerHTML += '<option value="Calça">Calça</option>';
+            subcategoria.innerHTML += '<option value="Tênis">Tênis</option>';
+        } else if (categoria === 'Tecnologia') {
+            subcategoria.innerHTML += '<option value="Celular">Celular</option>';
+            subcategoria.innerHTML += '<option value="Notebook">Notebook</option>';
+            subcategoria.innerHTML += '<option value="Fone">Fone</option>';
+        } else if (categoria === 'Alimentos') {
+            subcategoria.innerHTML += '<option value="Bebida">Bebida</option>';
+            subcategoria.innerHTML += '<option value="Salgado">Salgado</option>';
+            subcategoria.innerHTML += '<option value="Doce">Doce</option>';
+        }
     } else {
-        subcategoria.innerHTML += '<option value="">Selecione uma categoria primeiro</option>';
+        div.style.display = "none";
     }
-});
+}
 </script>
 {% endblock %}
