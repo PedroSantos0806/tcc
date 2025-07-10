@@ -12,32 +12,42 @@ def home():
 @main_bp.route('/cadastrar_produto', methods=['GET', 'POST'])
 @login_required
 def cadastrar_produto():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM categorias")
+    categorias = cursor.fetchall()
+
     if request.method == 'POST':
         nome = request.form.get('nome')
         preco = request.form.get('preco')
+        categoria_id = request.form.get('categoria_id')
+        subcategoria_id = request.form.get('subcategoria_id')
+        tamanho = request.form.get('tamanho')
+        data_chegada = request.form.get('data_chegada')
 
-        if not nome or not preco:
+        if not nome or not preco or not categoria_id or not subcategoria_id or not data_chegada:
             flash('Todos os campos são obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO produtos (nome, preco, usuario_id) VALUES (%s, %s, %s)",
-                (nome, preco, session['usuario_id'])
+                "INSERT INTO produtos (nome, preco, categoria_id, subcategoria_id, tamanho, data_chegada, usuario_id) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (nome, preco, categoria_id, subcategoria_id, tamanho, data_chegada, session['usuario_id'])
             )
             conn.commit()
-            cursor.close()
-            conn.close()
             flash('Produto cadastrado com sucesso!')
             return redirect(url_for('main_bp.cadastrar_produto'))
         except Exception as e:
             print("Erro ao cadastrar produto:", e)
+            conn.rollback()
             flash('Erro ao cadastrar produto.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
-    return render_template('cadastrar_produto.html')
+    cursor.close()
+    conn.close()
+    return render_template('cadastrar_produto.html', categorias=categorias)
 
 @main_bp.route('/cadastrar_venda', methods=['GET', 'POST'])
 @login_required
@@ -51,8 +61,9 @@ def cadastrar_venda():
     if request.method == 'POST':
         produto_id = request.form.get('produto_id')
         quantidade = request.form.get('quantidade')
+        data_venda = request.form.get('data_venda')
 
-        if not produto_id or not quantidade:
+        if not produto_id or not quantidade or not data_venda:
             flash('Todos os campos são obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_venda'))
 
@@ -68,18 +79,11 @@ def cadastrar_venda():
 
             # Inserir venda
             cursor.execute(
-                "INSERT INTO vendas (usuario_id, data) VALUES (%s, CURDATE())",
-                (session['usuario_id'],)
-            )
-            venda_id = cursor.lastrowid
-
-            # Inserir item de venda
-            cursor.execute(
-                "INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco) VALUES (%s, %s, %s, %s)",
-                (venda_id, produto_id, quantidade, preco)
+                "INSERT INTO vendas (usuario_id, produto_id, quantidade, preco, data) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (session['usuario_id'], produto_id, quantidade, preco, data_venda)
             )
             conn.commit()
-
             flash('Venda registrada com sucesso!')
             return redirect(url_for('main_bp.cadastrar_venda'))
         except Exception as e:
@@ -103,7 +107,7 @@ def ver_previsao():
 
     # Exemplo fictício de previsão
     for produto in produtos:
-        produto['previsao'] = 100  # Depois substitua aqui pelo seu modelo real
+        produto['previsao'] = 100  # Aqui depois substitui pelo modelo real
 
     cursor.close()
     conn.close()
