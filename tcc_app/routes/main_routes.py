@@ -12,42 +12,35 @@ def home():
 @main_bp.route('/cadastrar_produto', methods=['GET', 'POST'])
 @login_required
 def cadastrar_produto():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM categorias")
-    categorias = cursor.fetchall()
-
     if request.method == 'POST':
         nome = request.form.get('nome')
         preco = request.form.get('preco')
-        categoria_id = request.form.get('categoria_id')
-        subcategoria_id = request.form.get('subcategoria_id')
+        categoria = request.form.get('categoria')
+        subcategoria = request.form.get('subcategoria')
         tamanho = request.form.get('tamanho')
-        data_chegada = request.form.get('data_chegada')
 
-        if not nome or not preco or not categoria_id or not subcategoria_id or not data_chegada:
-            flash('Todos os campos são obrigatórios.')
+        if not nome or not preco or not categoria:
+            flash('Nome, preço e categoria são obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
         try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
             cursor.execute(
-                "INSERT INTO produtos (nome, preco, categoria_id, subcategoria_id, tamanho, data_chegada, usuario_id) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (nome, preco, categoria_id, subcategoria_id, tamanho, data_chegada, session['usuario_id'])
+                "INSERT INTO produtos (nome, preco, categoria, subcategoria, tamanho, usuario_id) VALUES (%s, %s, %s, %s, %s, %s)",
+                (nome, preco, categoria, subcategoria, tamanho, session['usuario_id'])
             )
             conn.commit()
+            cursor.close()
+            conn.close()
             flash('Produto cadastrado com sucesso!')
             return redirect(url_for('main_bp.cadastrar_produto'))
         except Exception as e:
             print("Erro ao cadastrar produto:", e)
-            conn.rollback()
             flash('Erro ao cadastrar produto.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
-    cursor.close()
-    conn.close()
-    return render_template('cadastrar_produto.html', categorias=categorias)
+    return render_template('cadastrar_produto.html')
 
 @main_bp.route('/cadastrar_venda', methods=['GET', 'POST'])
 @login_required

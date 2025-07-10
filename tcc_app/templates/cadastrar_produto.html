@@ -8,6 +8,33 @@
     <label>Preço (R$):</label>
     <input type="number" step="0.01" name="preco" required>
 
+    <label>Categoria:</label>
+    <select id="categoria" name="categoria" required>
+        <option value="">Selecione</option>
+        <option value="Vestuário">Vestuário</option>
+        <option value="Tecnologia">Tecnologia</option>
+        <option value="Alimentos">Alimentos</option>
+    </select>
+
+    <label>Subcategoria:</label>
+    <select id="subcategoria" name="subcategoria">
+        <option value="">Selecione uma categoria primeiro</option>
+    </select>
+
+    <label>Tamanho:</label>
+    <select id="tamanho" name="tamanho">
+        <option value="">Opcional</option>
+        <option value="PP">PP</option>
+        <option value="P">P</option>
+        <option value="M">M</option>
+        <option value="G">G</option>
+        <option value="GG">GG</option>
+        <option value="38">38</option>
+        <option value="40">40</option>
+        <option value="42">42</option>
+        <option value="44">44</option>
+    </select>
+
     <button type="submit">Cadastrar</button>
 </form>
 
@@ -20,4 +47,29 @@
     </ul>
   {% endif %}
 {% endwith %}
+
+<script>
+document.getElementById('categoria').addEventListener('change', function() {
+    var subcategoria = document.getElementById('subcategoria');
+    var categoria = this.value;
+
+    subcategoria.innerHTML = '';
+
+    if (categoria === 'Vestuário') {
+        subcategoria.innerHTML += '<option value="Camisa">Camisa</option>';
+        subcategoria.innerHTML += '<option value="Calça">Calça</option>';
+        subcategoria.innerHTML += '<option value="Tênis">Tênis</option>';
+    } else if (categoria === 'Tecnologia') {
+        subcategoria.innerHTML += '<option value="Celular">Celular</option>';
+        subcategoria.innerHTML += '<option value="Notebook">Notebook</option>';
+        subcategoria.innerHTML += '<option value="Fone">Fone</option>';
+    } else if (categoria === 'Alimentos') {
+        subcategoria.innerHTML += '<option value="Bebida">Bebida</option>';
+        subcategoria.innerHTML += '<option value="Salgado">Salgado</option>';
+        subcategoria.innerHTML += '<option value="Doce">Doce</option>';
+    } else {
+        subcategoria.innerHTML += '<option value="">Selecione uma categoria primeiro</option>';
+    }
+});
+</script>
 {% endblock %}
