@@ -64,18 +64,4 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C098FB1BF16D44399F9E41132F1FAC11 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_755ED0506B6C4BD1A5A67C2EED7CA211 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_35E1A8AEF73A49179766A3845062264E }}
-
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'demandacomia'
-          slot-name: 'Production'
           
