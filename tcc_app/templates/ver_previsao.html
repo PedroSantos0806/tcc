@@ -1,18 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Previsão de Vendas</h1>
-<table class="table-padrao">
-    <tr>
-        <th>Produto</th>
-        <th>Preço (R$)</th>
-        <th>Previsão de Vendas</th>
-    </tr>
-    {% for produto in produtos %}
-    <tr>
-        <td>{{ produto.nome }}</td>
-        <td>{{ produto.preco }}</td>
-        <td>{{ produto.previsao }}</td>
-    </tr>
-    {% endfor %}
-</table>
+
+{% if nomes and previsoes %}
+    <canvas id="graficoPrevisao" width="600" height="300"></canvas>
+
+    <script type="application/json" id="nomes-json">{{ nomes | tojson }}</script>
+    <script type="application/json" id="previsoes-json">{{ previsoes | tojson }}</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const nomes = JSON.parse(document.getElementById("nomes-json").textContent);
+        const previsoes = JSON.parse(document.getElementById("previsoes-json").textContent);
+
+        var ctx = document.getElementById('graficoPrevisao').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: nomes,
+                datasets: [{
+                    label: 'Previsão de vendas',
+                    data: previsoes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+    </script>
+{% else %}
+    <p>Não há dados de previsão disponíveis.</p>
+{% endif %}
 {% endblock %}

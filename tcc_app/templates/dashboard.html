@@ -6,7 +6,7 @@
     <select name="categoria" onchange="this.form.submit()">
         <option value="">Selecione</option>
         {% for cat in categorias %}
-            <option value="{{ cat }}" {% if cat == request.form.categoria %}selected{% endif %}>{{ cat }}</option>
+            <option value="{{ cat }}" {% if cat == request.form.get("categoria") %}selected{% endif %}>{{ cat }}</option>
         {% endfor %}
     </select>
 
@@ -15,7 +15,7 @@
         <select name="produto">
             <option value="">Selecione</option>
             {% for prod in produtos %}
-                <option value="{{ prod.id }}" {% if prod.id|string == request.form.produto %}selected{% endif %}>{{ prod.nome }}</option>
+                <option value="{{ prod.id }}" {% if prod.id|string == request.form.get("produto") %}selected{% endif %}>{{ prod.nome }}</option>
             {% endfor %}
         </select>
         <button type="submit">Filtrar</button>
@@ -24,12 +24,47 @@
 
 {% if vendas %}
     <h3>Vendas do Produto Selecionado</h3>
-    <ul>
-    {% for venda in vendas %}
-        <li>{{ venda.nome }} — Total vendido: {{ venda.total_vendido }} — Previsão: {{ previsao }}</li>
-    {% endfor %}
-    </ul>
+    <canvas id="graficoVendas" width="600" height="300"></canvas>
+    <p>Previsão estimada: {{ previsao }}</p>
+
+    <script type="application/json" id="labels-json">{{ vendas | map(attribute='nome') | list | tojson }}</script>
+    <script type="application/json" id="data-json">{{ vendas | map(attribute='total_vendido') | list | tojson }}</script>
 {% elif previsao %}
     <p>Previsão estimada: {{ previsao }}</p>
+{% else %}
+    <p>Selecione uma categoria e produto para visualizar.</p>
+{% endif %}
+
+{% if vendas %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const labels = JSON.parse(document.getElementById("labels-json").textContent);
+    const data = JSON.parse(document.getElementById("data-json").textContent);
+
+    var ctx = document.getElementById('graficoVendas').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Vendido',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0
+                }
+            }
+        }
+    });
+});
+</script>
 {% endif %}
 {% endblock %}

@@ -12,7 +12,7 @@
     <input type="number" name="quantidade" min="0" required>
 
     <label>Categoria:</label>
-    <select name="categoria" id="categoriaSelect" required onchange="mostrarSubcategoria()">
+    <select name="categoria" id="categoriaSelect" required onchange="atualizarCampos()">
         <option value="">Selecione</option>
         <option value="Vestuário">Vestuário</option>
         <option value="Tecnologia">Tecnologia</option>
@@ -26,8 +26,10 @@
         </select>
     </div>
 
-    <label>Tamanho:</label>
-    <input type="text" name="tamanho" placeholder="Ex: 38 ou M ou G" required>
+    <div id="divTamanho" style="display:none;">
+        <label>Tamanho:</label>
+        <input type="text" name="tamanho" placeholder="Ex: 38 ou M ou G">
+    </div>
 
     <label>Data de chegada:</label>
     <input type="date" name="data_chegada" required>
@@ -46,30 +48,33 @@
 {% endwith %}
 
 <script>
-function mostrarSubcategoria() {
+function atualizarCampos() {
     var categoria = document.getElementById("categoriaSelect").value;
-    var div = document.getElementById("divSubcategoria");
-    var subcategoria = document.getElementById("subcategoriaSelect");
-    subcategoria.innerHTML = '';  // Limpa opções
+    var divSub = document.getElementById("divSubcategoria");
+    var subSelect = document.getElementById("subcategoriaSelect");
+    var divTam = document.getElementById("divTamanho");
+
+    subSelect.innerHTML = '';
+    divSub.style.display = "none";
+    divTam.style.display = "none";
 
     if (categoria !== "") {
-        div.style.display = "block";
+        divSub.style.display = "block";
 
         if (categoria === 'Vestuário') {
-            subcategoria.innerHTML += '<option value="Camisa">Camisa</option>';
-            subcategoria.innerHTML += '<option value="Calça">Calça</option>';
-            subcategoria.innerHTML += '<option value="Tênis">Tênis</option>';
+            subSelect.innerHTML += '<option value="Camisa">Camisa</option>';
+            subSelect.innerHTML += '<option value="Calça">Calça</option>';
+            subSelect.innerHTML += '<option value="Tênis">Tênis</option>';
+            divTam.style.display = "block";
         } else if (categoria === 'Tecnologia') {
-            subcategoria.innerHTML += '<option value="Celular">Celular</option>';
-            subcategoria.innerHTML += '<option value="Notebook">Notebook</option>';
-            subcategoria.innerHTML += '<option value="Fone">Fone</option>';
+            subSelect.innerHTML += '<option value="Celular">Celular</option>';
+            subSelect.innerHTML += '<option value="Notebook">Notebook</option>';
+            subSelect.innerHTML += '<option value="Fone">Fone</option>';
         } else if (categoria === 'Alimentos') {
-            subcategoria.innerHTML += '<option value="Bebida">Bebida</option>';
-            subcategoria.innerHTML += '<option value="Salgado">Salgado</option>';
-            subcategoria.innerHTML += '<option value="Doce">Doce</option>';
+            subSelect.innerHTML += '<option value="Bebida">Bebida</option>';
+            subSelect.innerHTML += '<option value="Salgado">Salgado</option>';
+            subSelect.innerHTML += '<option value="Doce">Doce</option>';
         }
-    } else {
-        div.style.display = "none";
     }
 }
 </script>

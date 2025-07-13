@@ -102,13 +102,16 @@ def ver_previsao():
     cursor.execute("SELECT * FROM produtos WHERE usuario_id = %s", (session['usuario_id'],))
     produtos = cursor.fetchall()
 
-    # Exemplo fictício de previsão
+    nomes = []
+    previsoes = []
+
     for produto in produtos:
-        produto['previsao'] = 100  # Aqui depois substitui pelo modelo real
+        nomes.append(produto['nome'])
+        previsoes.append(100)  # Número fictício por enquanto
 
     cursor.close()
     conn.close()
-    return render_template('ver_previsao.html', produtos=produtos)
+    return render_template('ver_previsao.html', nomes=nomes, previsoes=previsoes)
 
 @main_bp.route('/ver_estoque')
 @login_required
