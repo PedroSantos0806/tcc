@@ -10,3 +10,7 @@ flask_sqlalchemy
 flask_migrate
 pymysql
 matplotlib
+scikit-learn
+numpy
+scipy
+joblib
