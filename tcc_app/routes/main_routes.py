@@ -119,45 +119,60 @@ def ver_estoque():
 @main_bp.route('/ver_previsao')
 @login_required
 def ver_previsao():
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    from sklearn.linear_model import LinearRegression
+    import os
+    from datetime import timedelta
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+
     cursor.execute("""
-        SELECT data, quantidade FROM vendas
-        WHERE usuario_id = %s
-        ORDER BY data ASC
+        SELECT p.id, p.nome, iv.quantidade, v.data
+        FROM itens_venda iv
+        JOIN vendas v ON iv.venda_id = v.id
+        JOIN produtos p ON iv.produto_id = p.id
+        WHERE v.usuario_id = %s
     """, (session['usuario_id'],))
-    vendas = cursor.fetchall()
+    dados = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    if not vendas:
-        return render_template("ver_previsao.html", grafico="<p>Sem dados para previsão.</p>")
+    if not dados:
+        return render_template("ver_previsao.html", grafico="<p>Sem dados suficientes para prever.</p>")
 
-    df = pd.DataFrame(vendas)
+    df = pd.DataFrame(dados)
     df['data'] = pd.to_datetime(df['data'])
-    df = df.groupby('data').sum().reset_index()
-    df['dias'] = (df['data'] - df['data'].min()).dt.days
-
-    X = df[['dias']]
-    y = df['quantidade']
-    modelo = LinearRegression()
-    modelo.fit(X, y)
-
-    dias_futuros = list(range(df['dias'].max() + 1, df['dias'].max() + 8))
-    datas_futuras = [df['data'].min() + pd.Timedelta(days=int(d)) for d in dias_futuros]
-    previsoes = modelo.predict(pd.DataFrame({'dias': dias_futuros}))
-
-    plt.figure(figsize=(10, 5))
-    plt.plot(df['data'], df['quantidade'], label='Histórico')
-    plt.plot(datas_futuras, previsoes, label='Previsão', linestyle='--')
-    plt.xlabel("Data")
-    plt.ylabel("Quantidade Vendida")
-    plt.title("Previsão de Vendas")
-    plt.legend()
-    plt.grid(True)
 
     os.makedirs("tcc_app/static/previsao", exist_ok=True)
     caminho = "tcc_app/static/previsao/previsao.png"
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    produtos = df['nome'].unique()
+
+    for produto in produtos:
+        df_prod = df[df['nome'] == produto]
+        df_grouped = df_prod.groupby('data').sum().reset_index()
+        df_grouped['dias'] = (df_grouped['data'] - df_grouped['data'].min()).dt.days
+
+        if len(df_grouped) >= 2:
+            modelo = LinearRegression()
+            modelo.fit(df_grouped[['dias']], df_grouped['quantidade'])
+
+            dias_futuros = list(range(df_grouped['dias'].max() + 1, df_grouped['dias'].max() + 8))
+            datas_futuras = [df_grouped['data'].min() + timedelta(days=int(d)) for d in dias_futuros]
+            previsoes = modelo.predict(pd.DataFrame({'dias': dias_futuros}))
+
+            ax.plot(df_grouped['data'], df_grouped['quantidade'], label=f"{produto} (real)")
+            ax.plot(datas_futuras, previsoes, '--', label=f"{produto} (previsão)")
+
+    ax.set_title("Previsão de Vendas por Produto")
+    ax.set_xlabel("Data")
+    ax.set_ylabel("Quantidade")
+    ax.legend()
+    plt.grid(True)
+    plt.tight_layout()
     plt.savefig(caminho)
     plt.close()
 
@@ -169,29 +184,26 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id = %s", (session["usuario_id"],))
-    categorias = [row['categoria'] for row in cursor.fetchall()]
-
-    produtos = []
-    vendas = []
-
-    categoria_selecionada = request.form.get("categoria")
-    produto_selecionado = request.form.get("produto")
-
-    if categoria_selecionada:
-        cursor.execute("SELECT * FROM produtos WHERE categoria = %s AND usuario_id = %s", (categoria_selecionada, session["usuario_id"]))
-        produtos = cursor.fetchall()
-
-    if produto_selecionado:
-        cursor.execute("""
-            SELECT DATE(data) as data, SUM(quantidade) as total_vendido
-            FROM vendas
-            WHERE produto_id = %s AND usuario_id = %s
-            GROUP BY DATE(data)
-            ORDER BY data
-        """, (produto_selecionado, session["usuario_id"]))
-        vendas = cursor.fetchall()
+    cursor.execute("""
+        SELECT p.id, p.nome, p.quantidade AS qtd_inicial,
+            COALESCE(SUM(iv.quantidade), 0) AS qtd_vendida,
+            COALESCE(SUM(iv.quantidade * iv.preco_unitario), 0) AS custo_total,
+            COALESCE(SUM(iv.quantidade * p.preco), 0) AS receita_total
+        FROM produtos p
+        LEFT JOIN itens_venda iv ON iv.produto_id = p.id
+        LEFT JOIN vendas v ON iv.venda_id = v.id AND v.usuario_id = %s
+        WHERE p.usuario_id = %s
+        GROUP BY p.id
+    """, (session['usuario_id'], session['usuario_id']))
+    produtos = cursor.fetchall()
 
     cursor.close()
     conn.close()
-    return render_template("dashboard.html", categorias=categorias, produtos=produtos, vendas=vendas)
+
+    nomes = [p['nome'] for p in produtos]
+    vendidos = [p['qtd_vendida'] for p in produtos]
+    em_estoque = [p['qtd_inicial'] - p['qtd_vendida'] for p in produtos]
+    custo = [p['custo_total'] for p in produtos]
+    lucro = [p['receita_total'] - p['custo_total'] for p in produtos]
+
+    return render_template("dashboard.html", nomes=nomes, vendidos=vendidos, em_estoque=em_estoque, custo=custo, lucro=lucro)

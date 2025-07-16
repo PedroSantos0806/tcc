@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Bem-vindo, {{ nome }}!</h1>
+<h2>O que você deseja fazer?</h2>
+<p>Escolha uma das opções abaixo para gerenciar seu estoque ou ver previsões de venda.</p>
 
 <div class="home-cards">
     <a href="{{ url_for('main_bp.ver_estoque') }}" class="card">📦 Ver Estoque</a>
-    <a href="{{ url_for('main_bp.ver_previsao') }}" class="card">📈 Ver Previsão</a>
-    <a href="{{ url_for('main_bp.cadastrar_produto') }}" class="card">➕ Cadastrar Produto</a>
+    <a href="{{ url_for('main_bp.ver_previsao') }}" class="card">📈 Previsão</a>
+    <a href="{{ url_for('main_bp.cadastrar_produto') }}" class="card">🛠️ Cadastrar Produto</a>
     <a href="{{ url_for('main_bp.cadastrar_venda') }}" class="card">🛒 Registrar Venda</a>
-    <a href="{{ url_for('main_bp.dashboard') }}" class="card">📊 Dashboard</a>
+    <a href="{{ url_for('main_bp.dashboard') }}" class="card">📊 Ver Dashboard</a>
 </div>
 {% endblock %}

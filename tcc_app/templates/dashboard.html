@@ -1,65 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Dashboard</h1>
-<form method="post">
-    <label>Categoria:</label>
-    <select name="categoria" onchange="this.form.submit()">
-        <option value="">Selecione</option>
-        {% for cat in categorias %}
-            <option value="{{ cat }}" {% if cat == request.form.get("categoria") %}selected{% endif %}>{{ cat }}</option>
-        {% endfor %}
-    </select>
+<h1>Dashboard Geral</h1>
 
-    {% if produtos %}
-        <label>Produto:</label>
-        <select name="produto" name="produto">
-            <option value="">Selecione</option>
-            {% for prod in produtos %}
-                <option value="{{ prod.id }}" {% if prod.id|string == request.form.get("produto") %}selected{% endif %}>{{ prod.nome }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Filtrar</button>
-    {% endif %}
-</form>
+<canvas id="grafico" width="800" height="400"></canvas>
 
-{% if vendas %}
-    <h3>Vendas por Data</h3>
-    <canvas id="graficoVendas" width="600" height="300"></canvas>
+<!-- Blocos JSON seguros para leitura no JavaScript -->
+<script type="application/json" id="labels-json">{{ nomes | tojson }}</script>
+<script type="application/json" id="vendidos-json">{{ vendidos | tojson }}</script>
+<script type="application/json" id="estoque-json">{{ em_estoque | tojson }}</script>
+<script type="application/json" id="custo-json">{{ custo | tojson }}</script>
+<script type="application/json" id="lucro-json">{{ lucro | tojson }}</script>
 
-    <script type="application/json" id="labels-json">{{ vendas | map(attribute='data') | list | tojson }}</script>
-    <script type="application/json" id="data-json">{{ vendas | map(attribute='total_vendido') | list | tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const labels = JSON.parse(document.getElementById("labels-json").textContent);
+    const vendidos = JSON.parse(document.getElementById("vendidos-json").textContent);
+    const estoque = JSON.parse(document.getElementById("estoque-json").textContent);
+    const custo = JSON.parse(document.getElementById("custo-json").textContent);
+    const lucro = JSON.parse(document.getElementById("lucro-json").textContent);
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const labels = JSON.parse(document.getElementById("labels-json").textContent);
-            const data = JSON.parse(document.getElementById("data-json").textContent);
-
-            var ctx = document.getElementById('graficoVendas').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Quantidade Vendida',
-                        data: data,
-                        backgroundColor: 'rgba(78, 178, 255, 0.4)',
-                        borderColor: 'rgba(78, 178, 255, 1)',
-                        borderWidth: 2,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
+    const ctx = document.getElementById('grafico').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Vendido', data: vendidos, backgroundColor: 'rgba(75,192,192,0.7)' },
+                { label: 'Em Estoque', data: estoque, backgroundColor: 'rgba(255,206,86,0.7)' },
+                { label: 'Custo Total (R$)', data: custo, backgroundColor: 'rgba(255,99,132,0.7)' },
+                { label: 'Lucro (R$)', data: lucro, backgroundColor: 'rgba(54,162,235,0.7)' }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Resumo de Produtos' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
                     }
                 }
-            });
-        });
-    </script>
-{% else %}
-    <p>Selecione uma categoria e produto para visualizar os dados.</p>
-{% endif %}
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
