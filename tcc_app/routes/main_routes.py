@@ -54,43 +54,48 @@ def cadastrar_produto():
 def cadastrar_venda():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+
     cursor.execute("SELECT * FROM produtos WHERE usuario_id = %s", (session['usuario_id'],))
     produtos = cursor.fetchall()
 
     if request.method == 'POST':
-        produto_id = request.form.get('produto_id')
-        quantidade = request.form.get('quantidade')
         data_venda = request.form.get('data_venda')
+        produto_ids = request.form.getlist('produto_id[]')
+        quantidades = request.form.getlist('quantidade[]')
 
-        if not produto_id or not quantidade or not data_venda:
-            flash('Todos os campos são obrigatórios.')
+        if not data_venda or not produto_ids or not quantidades:
+            flash("Preencha todos os campos.")
             return redirect(url_for('main_bp.cadastrar_venda'))
 
         try:
-            cursor.execute("SELECT preco FROM produtos WHERE id = %s", (produto_id,))
-            produto = cursor.fetchone()
+            cursor.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s, %s)", (session['usuario_id'], data_venda))
+            venda_id = cursor.lastrowid
 
-            if not produto:
-                flash('Produto não encontrado.')
-                return redirect(url_for('main_bp.cadastrar_venda'))
+            for produto_id, quantidade in zip(produto_ids, quantidades):
+                cursor.execute("SELECT preco FROM produtos WHERE id = %s", (produto_id,))
+                produto = cursor.fetchone()
+                preco = produto['preco']
 
-            preco = produto['preco']
-            cursor.execute("""
-                INSERT INTO vendas (usuario_id, produto_id, quantidade, preco, data)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (session['usuario_id'], produto_id, quantidade, preco, data_venda))
+                cursor.execute("""
+                    INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
+                    VALUES (%s, %s, %s, %s)
+                """, (venda_id, produto_id, quantidade, preco))
+
             conn.commit()
-            flash('Venda registrada com sucesso!')
+            flash("Venda registrada com sucesso!")
+
         except Exception as e:
             print("Erro ao registrar venda:", e)
             conn.rollback()
-            flash('Erro ao registrar venda.')
+            flash("Erro ao registrar venda.")
 
+        cursor.close()
+        conn.close()
         return redirect(url_for('main_bp.cadastrar_venda'))
 
     cursor.close()
     conn.close()
-    return render_template('registrar_venda.html', produtos=produtos)
+    return render_template("registrar_venda.html", produtos=produtos)
 
 @main_bp.route('/ver_estoque')
 @login_required

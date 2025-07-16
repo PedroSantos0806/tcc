@@ -6,8 +6,10 @@
     <p>Este sistema utiliza algoritmos de Machine Learning para prever a demanda futura dos seus produtos, auxiliando na gestão de estoque e tomada de decisões estratégicas.</p>
     
     <div class="botoes-auxiliares">
-        <a href="{{ url_for('main.previsao') }}" class="botao">Ver Previsão</a>
-        <a href="{{ url_for('main.registrar_venda') }}" class="botao">Registrar Venda</a>
-        <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
+        <a href="{{ url_for('main_bp.ver_estoque') }}" class="card">📦 Ver Estoque</a>
+        <a href="{{ url_for('main_bp.ver_previsao') }}" class="card">📈 Ver Previsão</a>
+        <a href="{{ url_for('main_bp.cadastrar_produto') }}" class="card">➕ Cadastrar Produto</a>
+        <a href="{{ url_for('main_bp.cadastrar_venda') }}" class="card">🛒 Registrar Venda</a>
+        <a href="{{ url_for('main_bp.dashboard') }}" class="card">📊 Dashboard</a>
     </div>
 {% endblock %}

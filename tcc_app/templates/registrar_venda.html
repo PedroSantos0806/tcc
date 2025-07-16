@@ -1,22 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Registrar Venda</h1>
-<form method="post" class="form-box">
-    <label>Produto:</label>
-    <select name="produto_id" required>
-        {% for produto in produtos %}
-            <option value="{{ produto.id }}">{{ produto.nome }} — R$ {{ produto.preco }}</option>
-        {% endfor %}
-    </select>
-
-    <label>Quantidade:</label>
-    <input type="number" name="quantidade" min="1" required>
-
+<h1>Registrar Venda com Múltiplos Produtos</h1>
+<form method="post" class="form-box" id="venda-form">
     <label>Data da Venda:</label>
     <input type="date" name="data_venda" required>
 
-    <button type="submit">Registrar</button>
+    <div id="itens-container">
+        <div class="item-venda">
+            <label>Produto:</label>
+            <select name="produto_id[]" required>
+                {% for produto in produtos %}
+                    <option value="{{ produto.id }}">{{ produto.nome }} — R$ {{ produto.preco }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Quantidade:</label>
+            <input type="number" name="quantidade[]" min="1" required>
+        </div>
+    </div>
+
+    <button type="button" onclick="adicionarItem()">➕ Adicionar outro produto</button>
+    <button type="submit">Registrar Venda</button>
 </form>
+
+<script>
+function adicionarItem() {
+    const container = document.getElementById("itens-container");
+    const item = document.querySelector(".item-venda").cloneNode(true);
+    container.appendChild(item);
+}
+</script>
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
