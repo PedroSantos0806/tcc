@@ -22,3 +22,19 @@ def obter_usuario_por_id(usuario_id):
     usuario = cursor.fetchone()
     cursor.close()
     return usuario
+
+def obter_estoque_com_vendas(usuario_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT p.*, 
+            COALESCE(p.quantidade - (
+                SELECT SUM(v.quantidade) FROM vendas v
+                WHERE v.produto_id = p.id
+            ), p.quantidade) AS quantidade_atual
+        FROM produtos p
+        WHERE p.usuario_id = %s
+    """, (usuario_id,))
+    produtos = cursor.fetchall()
+    cursor.close()
+    return produtos

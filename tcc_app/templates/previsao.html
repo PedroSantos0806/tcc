@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
-
 {% block content %}
-    <h2>Previsão de Vendas</h2>
-    <p>Abaixo está a previsão de vendas para os próximos dias, com base nos dados históricos.</p>
+<h2>Previsão de Vendas</h2>
+<p>Abaixo está a previsão de vendas com base nos dados históricos.</p>
 
-    <div class="grafico-container">
-        {{ grafico | safe }}
-    </div>
+<div class="grafico-container">
+    {{ grafico | safe }}
+</div>
 
-    <div class="botoes-auxiliares">
-        <a href="{{ url_for('main.registrar_venda') }}" class="botao">Registrar Venda</a>
-        <a href="{{ url_for('main.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
-    </div>
+<div class="botoes-auxiliares">
+    <a href="{{ url_for('main_bp.cadastrar_venda') }}" class="botao">Registrar Venda</a>
+    <a href="{{ url_for('main_bp.cadastrar_produto') }}" class="botao">Cadastrar Produto</a>
+</div>
 {% endblock %}

@@ -7,7 +7,8 @@
         <th>Categoria</th>
         <th>Subcategoria</th>
         <th>Preço (R$)</th>
-        <th>Quantidade</th>
+        <th>Quantidade Inicial</th>
+        <th>Quantidade Atual</th>
         <th>Tamanho</th>
     </tr>
     {% for produto in produtos %}
@@ -17,6 +18,7 @@
         <td>{{ produto.subcategoria }}</td>
         <td>{{ produto.preco }}</td>
         <td>{{ produto.quantidade }}</td>
+        <td>{{ produto.quantidade_atual or produto.quantidade }}</td>
         <td>{{ produto.tamanho }}</td>
     </tr>
     {% endfor %}

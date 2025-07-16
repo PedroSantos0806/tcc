@@ -12,7 +12,7 @@
 
     {% if produtos %}
         <label>Produto:</label>
-        <select name="produto">
+        <select name="produto" name="produto">
             <option value="">Selecione</option>
             {% for prod in produtos %}
                 <option value="{{ prod.id }}" {% if prod.id|string == request.form.get("produto") %}selected{% endif %}>{{ prod.nome }}</option>
@@ -23,48 +23,43 @@
 </form>
 
 {% if vendas %}
-    <h3>Vendas do Produto Selecionado</h3>
+    <h3>Vendas por Data</h3>
     <canvas id="graficoVendas" width="600" height="300"></canvas>
-    <p>Previsão estimada: {{ previsao }}</p>
 
-    <script type="application/json" id="labels-json">{{ vendas | map(attribute='nome') | list | tojson }}</script>
+    <script type="application/json" id="labels-json">{{ vendas | map(attribute='data') | list | tojson }}</script>
     <script type="application/json" id="data-json">{{ vendas | map(attribute='total_vendido') | list | tojson }}</script>
-{% elif previsao %}
-    <p>Previsão estimada: {{ previsao }}</p>
-{% else %}
-    <p>Selecione uma categoria e produto para visualizar.</p>
-{% endif %}
 
-{% if vendas %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const labels = JSON.parse(document.getElementById("labels-json").textContent);
-    const data = JSON.parse(document.getElementById("data-json").textContent);
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const labels = JSON.parse(document.getElementById("labels-json").textContent);
+            const data = JSON.parse(document.getElementById("data-json").textContent);
 
-    var ctx = document.getElementById('graficoVendas').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Total Vendido',
-                data: data,
-                backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    precision: 0
+            var ctx = document.getElementById('graficoVendas').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Quantidade Vendida',
+                        data: data,
+                        backgroundColor: 'rgba(78, 178, 255, 0.4)',
+                        borderColor: 'rgba(78, 178, 255, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
                 }
-            }
-        }
-    });
-});
-</script>
+            });
+        });
+    </script>
+{% else %}
+    <p>Selecione uma categoria e produto para visualizar os dados.</p>
 {% endif %}
 {% endblock %}
