@@ -9,3 +9,4 @@ openpyxl
 flask_sqlalchemy
 flask_migrate
 pymysql
+matplotlib
