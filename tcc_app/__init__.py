@@ -12,7 +12,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-    # Encerrar conexão com banco após request
+    # Fecha conexão com banco após cada request
     app.teardown_appcontext(close_db_connection)
 
     return app
