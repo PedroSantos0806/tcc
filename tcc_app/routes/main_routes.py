@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 from tcc_app.utils import login_required
-from tcc_app.db import get_db_connection
+from tcc_app.db import get_db_connection, get_db
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 main_bp = Blueprint('main_bp', __name__)
@@ -20,30 +20,33 @@ def cadastrar_produto():
     if request.method == 'POST':
         nome = request.form.get('nome')
         preco = request.form.get('preco')
+        preco_custo = request.form.get('preco_custo')
+        preco_venda = request.form.get('preco_venda')
         quantidade = request.form.get('quantidade')
         categoria = request.form.get('categoria')
         subcategoria = request.form.get('subcategoria')
         tamanho = request.form.get('tamanho')
         data_chegada = request.form.get('data_chegada')
 
-        if not nome or not preco or not categoria or quantidade is None or not data_chegada:
-            flash('Nome, preço, quantidade, categoria e data de chegada são obrigatórios.')
+        if not nome or not preco or not preco_custo or not preco_venda or not categoria or quantidade is None or not data_chegada:
+            flash('Preencha todos os campos obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_produto'))
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO produtos (nome, preco, quantidade, categoria, subcategoria, tamanho, data_chegada, usuario_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nome, preco, quantidade, categoria, subcategoria, tamanho, data_chegada, session['usuario_id']))
+                INSERT INTO produtos (nome, preco, preco_custo, preco_venda, quantidade, categoria, subcategoria, tamanho, data_chegada, usuario_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (nome, preco, preco_custo, preco_venda, quantidade, categoria, subcategoria, tamanho, data_chegada, session['usuario_id']))
             conn.commit()
-            cursor.close()
-            conn.close()
             flash('Produto cadastrado com sucesso!')
         except Exception as e:
             print("Erro ao cadastrar produto:", e)
             flash('Erro ao cadastrar produto.')
+        finally:
+            cursor.close()
+            conn.close()
 
         return redirect(url_for('main_bp.cadastrar_produto'))
 
@@ -72,9 +75,9 @@ def cadastrar_venda():
             venda_id = cursor.lastrowid
 
             for produto_id, quantidade in zip(produto_ids, quantidades):
-                cursor.execute("SELECT preco FROM produtos WHERE id = %s", (produto_id,))
+                cursor.execute("SELECT preco_venda FROM produtos WHERE id = %s", (produto_id,))
                 produto = cursor.fetchone()
-                preco = produto['preco']
+                preco = produto['preco_venda']
 
                 cursor.execute("""
                     INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
@@ -83,15 +86,14 @@ def cadastrar_venda():
 
             conn.commit()
             flash("Venda registrada com sucesso!")
-
         except Exception as e:
             print("Erro ao registrar venda:", e)
             conn.rollback()
             flash("Erro ao registrar venda.")
-
-        cursor.close()
-        conn.close()
-        return redirect(url_for('main_bp.cadastrar_venda'))
+        finally:
+            cursor.close()
+            conn.close()
+            return redirect(url_for('main_bp.cadastrar_venda'))
 
     cursor.close()
     conn.close()
@@ -100,31 +102,24 @@ def cadastrar_venda():
 @main_bp.route('/ver_estoque')
 @login_required
 def ver_estoque():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     cursor.execute("""
-        SELECT p.*, 
-        COALESCE(p.quantidade - (
-            SELECT SUM(v.quantidade) FROM vendas v
-            WHERE v.produto_id = p.id
-        ), p.quantidade) AS quantidade_atual
+        SELECT p.id, p.nome, p.categoria, p.preco_venda, p.preco_custo, 
+               p.quantidade AS qtd_inicial,
+               IFNULL(SUM(iv.quantidade), 0) AS vendidos
         FROM produtos p
+        LEFT JOIN itens_venda iv ON p.id = iv.produto_id
         WHERE p.usuario_id = %s
+        GROUP BY p.id
     """, (session['usuario_id'],))
     produtos = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template("ver_estoque.html", produtos=produtos)
+    for p in produtos:
+        p['em_estoque'] = p['qtd_inicial'] - p['vendidos']
+    return render_template('estoque.html', produtos=produtos)
 
 @main_bp.route('/ver_previsao')
 @login_required
 def ver_previsao():
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    from sklearn.linear_model import LinearRegression
-    import os
-    from datetime import timedelta
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -178,7 +173,7 @@ def ver_previsao():
 
     return render_template("ver_previsao.html", grafico=f"<img src='/static/previsao/previsao.png'>")
 
-@main_bp.route('/dashboard', methods=['GET', 'POST'])
+@main_bp.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
     conn = get_db_connection()
@@ -187,8 +182,8 @@ def dashboard():
     cursor.execute("""
         SELECT p.id, p.nome, p.quantidade AS qtd_inicial,
             COALESCE(SUM(iv.quantidade), 0) AS qtd_vendida,
-            COALESCE(SUM(iv.quantidade * iv.preco_unitario), 0) AS custo_total,
-            COALESCE(SUM(iv.quantidade * p.preco), 0) AS receita_total
+            COALESCE(SUM(iv.quantidade * p.preco_custo), 0) AS custo_total,
+            COALESCE(SUM(iv.quantidade * iv.preco_unitario), 0) AS receita_total
         FROM produtos p
         LEFT JOIN itens_venda iv ON iv.produto_id = p.id
         LEFT JOIN vendas v ON iv.venda_id = v.id AND v.usuario_id = %s
