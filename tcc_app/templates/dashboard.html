@@ -2,9 +2,18 @@
 {% block content %}
 <h1>Dashboard Geral</h1>
 
+<form method="GET" class="form-box">
+    <label for="categoria">Filtrar por categoria:</label>
+    <select name="categoria" id="categoria" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {% for cat in categorias %}
+        <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+    </select>
+</form>
+
 <canvas id="grafico" width="800" height="400"></canvas>
 
-<!-- Blocos JSON seguros para leitura no JavaScript -->
 <script type="application/json" id="labels-json">{{ nomes | tojson }}</script>
 <script type="application/json" id="vendidos-json">{{ vendidos | tojson }}</script>
 <script type="application/json" id="estoque-json">{{ em_estoque | tojson }}</script>
@@ -13,7 +22,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const labels = JSON.parse(document.getElementById("labels-json").textContent);
     const vendidos = JSON.parse(document.getElementById("vendidos-json").textContent);
     const estoque = JSON.parse(document.getElementById("estoque-json").textContent);

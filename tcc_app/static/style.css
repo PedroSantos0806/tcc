@@ -47,7 +47,7 @@ header h1 {
     background: #334155;
 }
 
-/* Conteúdo */
+/* Conteúdo padrão */
 .content {
     padding: 40px 20px;
 }
@@ -74,15 +74,16 @@ header h1 {
     background-color: #1e293b;
 }
 
-/* Formulários */
+/* Formulários gerais */
 .form-box {
     display: flex;
     flex-direction: column;
     gap: 10px;
     max-width: 400px;
+    margin: 20px auto;
 }
 
-input, select, button {
+input, select, button, textarea {
     padding: 10px;
     border-radius: 6px;
     font-size: 1rem;
@@ -90,7 +91,7 @@ input, select, button {
     outline: none;
 }
 
-input, select {
+input, select, textarea {
     background-color: #1e293b;
     color: white;
     border: 1px solid #334155;
@@ -105,6 +106,97 @@ button {
 
 button:hover {
     background-color: #0284c7;
+}
+
+/* Login Page */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    background: #0f172a;
+}
+
+.login-container {
+    background-color: #1e293b;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    color: #0ea5e9;
+    text-align: center;
+}
+
+.login-container label {
+    font-weight: bold;
+}
+
+.senha-box {
+    display: flex;
+    align-items: center;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
+
+.senha-box input {
+    flex: 1;
+    border: none;
+    background-color: transparent;
+    color: white;
+    padding: 10px;
+}
+
+.toggle-senha {
+    background: none;
+    border: none;
+    color: #0ea5e9;
+    font-size: 1.2rem;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.toggle-senha:hover {
+    color: #0284c7;
+}
+
+.erro-box {
+    background-color: #dc2626;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.login-link {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.login-link a {
+    color: #38bdf8;
+    text-decoration: underline;
+}
+
+.explicacao {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.explicacao h3 {
+    color: #0ea5e9;
+    margin-bottom: 10px;
 }
 
 /* Gráfico container */
@@ -140,4 +232,23 @@ button:hover {
 .card:hover {
     transform: scale(1.05);
     background-color: #2c2c40;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .form-box,
+    .login-container,
+    .grafico-container {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .home-cards {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card {
+        width: 90%;
+    }
 }
