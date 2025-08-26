@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from tcc_app.db import get_db_connection
-from werkzeug.security import generate_password_hash, check_password_hash
+from tcc_app.utils import MEM, find_usuario_by_email, add_usuario
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -14,24 +13,13 @@ def login():
         if not email or not senha:
             erro = 'Preencha todos os campos.'
         else:
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
-                usuario = cursor.fetchone()
-                cursor.close()
-                conn.close()
-
-                if usuario and check_password_hash(usuario['senha'], senha):
-                    session['usuario_id'] = usuario['id']
-                    session['usuario_nome'] = usuario['nome']
-                    return redirect(url_for('main_bp.home'))
-                else:
-                    erro = 'E-mail ou senha incorretos.'
-            except Exception as e:
-                print("Erro ao fazer login:", str(e))
-                erro = 'Erro interno. Tente novamente.'
-
+            usuario = find_usuario_by_email(email)
+            if usuario and usuario["senha"] == senha:
+                session['usuario_id'] = usuario['id']
+                session['usuario_nome'] = usuario['nome']
+                return redirect(url_for('main_bp.home'))
+            else:
+                erro = 'E-mail ou senha incorretos.'
     return render_template('login.html', erro=erro)
 
 @auth_bp.route('/cadastro', methods=['GET', 'POST'])
@@ -47,26 +35,13 @@ def cadastro():
         elif len(senha) < 6:
             erro = 'A senha deve ter no mínimo 6 caracteres.'
         else:
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
-                if cursor.fetchone():
-                    erro = 'E-mail já cadastrado.'
-                else:
-                    hash_senha = generate_password_hash(senha)
-                    cursor.execute(
-                        "INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)",
-                        (nome, email, hash_senha)
-                    )
-                    conn.commit()
-                    cursor.close()
-                    conn.close()
+            if find_usuario_by_email(email):
+                erro = 'E-mail já cadastrado.'
+            else:
+                novo = add_usuario(nome, email, senha)
+                if novo:
                     return redirect(url_for('auth_bp.login'))
-            except Exception as e:
-                print("Erro ao cadastrar:", str(e))
                 erro = 'Erro ao cadastrar usuário. Tente novamente.'
-
     return render_template('cadastro.html', erro=erro)
 
 @auth_bp.route('/logout')
