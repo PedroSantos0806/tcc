@@ -1,43 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Registrar Venda com Múltiplos Produtos</h1>
-<form method="post" class="form-box" id="venda-form">
-    <label>Data da Venda:</label>
-    <input type="date" name="data_venda" required>
+<h1>Registrar Venda</h1>
+<form method="POST" class="form-box">
+  <label>Data da venda*</label>
+  <input type="datetime-local" name="data_venda" required>
 
-    <div id="itens-container">
-        <div class="item-venda">
-            <label>Produto:</label>
-            <select name="produto_id[]" required>
-                {% for produto in produtos %}
-                    <option value="{{ produto.id }}">{{ produto.nome }} — R$ {{ produto.preco }}</option>
-                {% endfor %}
-            </select>
-
-            <label>Quantidade:</label>
-            <input type="number" name="quantidade[]" min="1" required>
-        </div>
+  <div id="itens">
+    <div class="linha-item">
+      <select name="produto_id[]">
+        {% for p in produtos %}
+          <option value="{{ p.id }}">{{ p.nome }} (R$ {{ '%.2f'|format(p.preco_venda) }})</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="quantidade[]" min="1" value="1">
     </div>
+  </div>
 
-    <button type="button" onclick="adicionarItem()">➕ Adicionar outro produto</button>
-    <button type="submit">Registrar Venda</button>
+  <button type="button" onclick="addItem()">+ adicionar item</button>
+  <button type="submit">Registrar</button>
 </form>
 
 <script>
-function adicionarItem() {
-    const container = document.getElementById("itens-container");
-    const item = document.querySelector(".item-venda").cloneNode(true);
-    container.appendChild(item);
+function addItem(){
+  const div = document.createElement('div');
+  div.className = 'linha-item';
+  div.innerHTML = document.querySelector('.linha-item').innerHTML;
+  document.getElementById('itens').appendChild(div);
 }
 </script>
-
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
 {% endblock %}

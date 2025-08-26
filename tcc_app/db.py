@@ -1,32 +1,34 @@
-import mysql.connector
 import os
+import mysql.connector
 from flask import g
 
+def _db_conf():
+    return dict(
+        host=os.getenv("DB_HOST", "191.36.128.250"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "Phlgbabi@10"),
+        database=os.getenv("DB_NAME", "banco_tcc"),
+        port=int(os.getenv("DB_PORT", "3306")),
+        autocommit=False
+    )
+
 def get_db_connection():
-    """
-    Retorna uma conexão direta ao banco (usado quando não está em contexto de app Flask).
-    """
-    if 'db_conn' not in g:
-        config = {
-            'user': os.environ.get('DB_USER'),
-            'password': os.environ.get('DB_PASSWORD'),
-            'host': os.environ.get('DB_HOST'),
-            'database': os.environ.get('DB_NAME'),
-            'port': int(os.environ.get('DB_PORT', 3306)),
-        }
-        g.db_conn = mysql.connector.connect(**config)
-    return g.db_conn
+    # conexão “nova” (use em operações pontuais)
+    return mysql.connector.connect(**_db_conf())
 
 def get_db():
-    """
-    Retorna a conexão atual do Flask (mais comum em rotas).
-    """
-    return get_db_connection()
+    # conexão “por request” (reuse)
+    if 'db' not in g:
+        g.db = mysql.connector.connect(**_db_conf())
+    return g.db
 
-def close_db_connection(e=None):
-    """
-    Fecha a conexão do banco após o uso, automaticamente.
-    """
-    db_conn = g.pop('db_conn', None)
-    if db_conn is not None:
-        db_conn.close()
+def close_db(e=None):
+    db = g.pop('db', None)
+    if db is not None:
+        try:
+            db.close()
+        except Exception:
+            pass
+
+def init_app(app):
+    app.teardown_appcontext(close_db)

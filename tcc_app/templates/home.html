@@ -2,29 +2,14 @@
 {% block content %}
 <section class="hero">
   <h2>O que você deseja fazer?</h2>
-  <p>Escolha uma das opções abaixo para gerenciar seu estoque ou ver previsões de venda.</p>
+  <p>Escolha uma das opções abaixo.</p>
 </section>
 
 <div class="quick-actions">
-  <a class="qa" href="{{ url_for('main_bp.cadastrar_produto') }}">
-    <span class="qa-emoji">📦</span>
-    <span class="qa-text">Cadastrar Produto</span>
-  </a>
-  <a class="qa" href="{{ url_for('main_bp.cadastrar_venda') }}">
-    <span class="qa-emoji">🧾</span>
-    <span class="qa-text">Registrar Venda</span>
-  </a>
-  <a class="qa" href="{{ url_for('main_bp.ver_estoque') }}">
-    <span class="qa-emoji">🛒</span>
-    <span class="qa-text">Estoque</span>
-  </a>
-  <a class="qa" href="{{ url_for('main_bp.ver_previsao') }}">
-    <span class="qa-emoji">📈</span>
-    <span class="qa-text">Previsão</span>
-  </a>
-  <a class="qa" href="{{ url_for('main_bp.dashboard') }}">
-    <span class="qa-emoji">📊</span>
-    <span class="qa-text">Dashboard</span>
-  </a>
+  <a class="qa" href="{{ url_for('main_bp.cadastrar_produto') }}"><span class="qa-emoji">📦</span><span class="qa-text">Cadastrar Produto</span></a>
+  <a class="qa" href="{{ url_for('main_bp.cadastrar_venda') }}"><span class="qa-emoji">🧾</span><span class="qa-text">Registrar Venda</span></a>
+  <a class="qa" href="{{ url_for('main_bp.ver_estoque') }}"><span class="qa-emoji">🛒</span><span class="qa-text">Estoque</span></a>
+  <a class="qa" href="{{ url_for('main_bp.ver_previsao') }}"><span class="qa-emoji">📈</span><span class="qa-text">Previsão</span></a>
+  <a class="qa" href="{{ url_for('main_bp.dashboard') }}"><span class="qa-emoji">📊</span><span class="qa-text">Dashboard</span></a>
 </div>
 {% endblock %}
