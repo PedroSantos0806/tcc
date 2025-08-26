@@ -1,26 +1,77 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Meu Estoque</h1>
+
+<form method="GET" class="form-box">
+  <label for="categoria">Filtrar por categoria:</label>
+  <select name="categoria" id="categoria" onchange="this.form.submit()">
+    <option value="">Todas</option>
+    {% for cat in categorias %}
+      <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<div class="cards-row">
+  <div class="card">
+    <h3>Produtos</h3>
+    <p>{{ kpis.produtos }}</p>
+  </div>
+  <div class="card">
+    <h3>Itens em Estoque</h3>
+    <p>{{ kpis.itens }}</p>
+  </div>
+  <div class="card">
+    <h3>Valor de Custo</h3>
+    <p>R$ {{ '%.2f'|format(kpis.valor_custo) }}</p>
+  </div>
+  <div class="card">
+    <h3>Valor de Venda</h3>
+    <p>R$ {{ '%.2f'|format(kpis.valor_venda) }}</p>
+  </div>
+</div>
+
 <table class="table-padrao">
+  <thead>
     <tr>
-        <th>Produto</th>
-        <th>Categoria</th>
-        <th>Preço de Venda (R$)</th>
-        <th>Preço de Custo (R$)</th>
-        <th>Quantidade Inicial</th>
-        <th>Vendidos</th>
-        <th>Em Estoque</th>
+      <th>Produto</th>
+      <th>Categoria</th>
+      <th>Preço Venda (R$)</th>
+      <th>Preço Custo (R$)</th>
+      <th>Qtd Inicial</th>
+      <th>Vendidos</th>
+      <th>Em Estoque</th>
+      <th>Progresso</th>
+      <th>Status</th>
     </tr>
+  </thead>
+  <tbody>
     {% for produto in produtos %}
     <tr>
-        <td>{{ produto.nome }}</td>
-        <td>{{ produto.categoria }}</td>
-        <td>{{ produto.preco_venda }}</td>
-        <td>{{ produto.preco_custo }}</td>
-        <td>{{ produto.qtd_inicial }}</td>
-        <td>{{ produto.vendidos }}</td>
-        <td>{{ produto.em_estoque }}</td>
+      <td>{{ produto.nome }}</td>
+      <td>{{ produto.categoria }}</td>
+      <td>{{ '%.2f'|format(produto.preco_venda) }}</td>
+      <td>{{ '%.2f'|format(produto.preco_custo) }}</td>
+      <td>{{ produto.qtd_inicial }}</td>
+      <td>{{ produto.vendidos }}</td>
+      <td>{{ produto.em_estoque }}</td>
+      <td style="min-width:160px;">
+        <div class="progress" style="--w: {{ produto.perc_vendido|round(1) }}">
+        <span></span>
+  </div>
+  <small>{{ produto.perc_vendido|round(1) }}%</small>
+</td>
+        <small>{{ produto.perc_vendido }}%</small>
+      </td>
+      <td>
+        {% if produto.status == 'Baixo' %}
+          <span class="badge badge-warn">Baixo</span>
+        {% else %}
+          <span class="badge">OK</span>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
+  </tbody>
 </table>
 {% endblock %}
