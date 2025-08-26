@@ -252,3 +252,27 @@ button:hover {
         width: 90%;
     }
 }
+.card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.card h3 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #555;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.card p {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+.form-box { display:flex; gap:8px; align-items:center; margin:8px 0 12px; }
+.form-box select, .form-box button {
+  padding: 8px 10px; border-radius: 8px; border:1px solid #ddd; background:#fff;
+}

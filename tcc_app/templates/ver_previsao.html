@@ -2,19 +2,62 @@
 {% block content %}
 <h1>Previsão de Vendas</h1>
 
-<form method="GET" class="form-box">
-    <label for="categoria">Filtrar por categoria:</label>
-    <select name="categoria" id="categoria" onchange="this.form.submit()">
-        <option value="">Todas</option>
-        {% for cat in categorias %}
-        <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
-        {% endfor %}
-    </select>
+<form method="GET" class="form-box" id="filtroForm">
+  <label for="categoria">Filtrar por categoria:</label>
+  <select name="categoria" id="categoria">
+    <option value="">Todas</option>
+    {% for cat in categorias %}
+      <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Aplicar</button>
 </form>
 
-{% if grafico %}
-    {{ grafico | safe }}
-{% else %}
-    <p>Não há dados de previsão disponíveis.</p>
-{% endif %}
+<div class="cards-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0;">
+  <div class="card"><h3>Horizonte</h3><p>14 dias</p></div>
+  <div class="card"><h3>Último dia</h3><p id="kpi-ult">—</p></div>
+  <div class="card"><h3>Média 7 dias</h3><p id="kpi-ma7">—</p></div>
+</div>
+
+<canvas id="prevChart" height="160"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+async function loadPrev(){
+  const cat = new URLSearchParams(window.location.search).get('categoria') || '';
+  const res = await fetch(`/api/previsao?categoria=${encodeURIComponent(cat)}`);
+  const data = await res.json();
+  if (!data.labels_hist || data.labels_hist.length === 0){
+    document.getElementById('prevChart').replaceWith(document.createElement('p')).textContent = 'Sem dados suficientes para prever.';
+    return;
+  }
+  const ult = data.hist[data.hist.length-1];
+  const ma7 = data.hist.slice(-7).reduce((a,b)=>a+b,0)/(Math.min(7,data.hist.length));
+  document.getElementById('kpi-ult').textContent = ult;
+  document.getElementById('kpi-ma7').textContent = ma7.toFixed(1);
+
+  const ctx = document.getElementById('prevChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [...data.labels_hist, ...data.labels_pred],
+      datasets: [
+        { label: 'Histórico (un)', data: [...data.hist, ...Array(data.pred.length).fill(null)], borderWidth: 2 },
+        { label: 'Previsão (un)', data: [...Array(data.hist.length).fill(null), ...data.pred], borderDash:[6,6], borderWidth: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Histórico (60d) e Previsão (14d)' },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      interaction: { mode: 'index', intersect: false },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', loadPrev);
+</script>
 {% endblock %}

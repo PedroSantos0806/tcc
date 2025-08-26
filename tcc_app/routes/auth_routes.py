@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from tcc_app.utils import MEM, find_usuario_by_email, add_usuario
+from tcc_app.utils import find_usuario_by_email, add_usuario
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -9,7 +9,6 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         senha = request.form.get('senha', '').strip()
-
         if not email or not senha:
             erro = 'Preencha todos os campos.'
         else:
@@ -18,8 +17,7 @@ def login():
                 session['usuario_id'] = usuario['id']
                 session['usuario_nome'] = usuario['nome']
                 return redirect(url_for('main_bp.home'))
-            else:
-                erro = 'E-mail ou senha incorretos.'
+            erro = 'E-mail ou senha incorretos.'
     return render_template('login.html', erro=erro)
 
 @auth_bp.route('/cadastro', methods=['GET', 'POST'])
@@ -29,7 +27,6 @@ def cadastro():
         nome = request.form.get('nome', '').strip()
         email = request.form.get('email', '').strip()
         senha = request.form.get('senha', '').strip()
-
         if not nome or not email or not senha:
             erro = 'Todos os campos são obrigatórios.'
         elif len(senha) < 6:
