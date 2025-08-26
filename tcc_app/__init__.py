@@ -12,7 +12,7 @@ def create_app():
     from .db import init_app as init_db
     init_db(app)
 
-    # importa blueprints DA PASTA routes/
+    # importa blueprints da pasta routes/ (sem fazer mais nada)
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
 

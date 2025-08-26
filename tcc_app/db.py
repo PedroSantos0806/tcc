@@ -10,19 +10,29 @@ def _db_conf():
         database=os.getenv("DB_NAME", "banco_tcc"),
         port=int(os.getenv("DB_PORT", "3306")),
         autocommit=False,
+
+        # >>> muito importante para Render: falhar rápido se não conectar
+        connection_timeout=5,
+
+        # pool leve (opcional; se preferir, comente as 2 linhas abaixo)
+        pool_name="tcc_pool",
+        pool_size=2,
     )
-    # SSL opcional (se o provedor exigir)
-    ssl_ca = os.getenv("DB_SSL_CA_PATH", os.path.join(os.path.dirname(__file__), "certs", "DigiCertGlobalRootCA.pem"))
-    if os.path.exists(ssl_ca) and os.getenv("DB_SSL", "0") in ("1", "true", "TRUE"):
-        conf["ssl_ca"] = ssl_ca
+
+    # SSL opcional (se o host exigir)
+    ssl_on = os.getenv("DB_SSL", "0").lower() in ("1", "true", "yes")
+    if ssl_on:
+        ssl_ca = os.getenv("DB_SSL_CA_PATH", os.path.join(os.path.dirname(__file__), "certs", "DigiCertGlobalRootCA.pem"))
+        if os.path.exists(ssl_ca):
+            conf["ssl_ca"] = ssl_ca
     return conf
 
 def get_db_connection():
-    """Conexão avulsa: use em operações pontuais."""
+    """Conexão avulsa para operações pontuais."""
     return mysql.connector.connect(**_db_conf())
 
 def get_db():
-    """Conexão reaproveitada por request (fica em g)."""
+    """Conexão reaproveitada por request."""
     if "db" not in g:
         g.db = mysql.connector.connect(**_db_conf())
     return g.db
@@ -35,7 +45,7 @@ def close_db(e=None):
         except Exception:
             pass
 
-# Alias para compatibilidade com imports antigos
+# alias pra compatibilidade antiga
 def close_db_connection(e=None):
     return close_db(e)
 
