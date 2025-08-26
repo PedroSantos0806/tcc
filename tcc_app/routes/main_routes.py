@@ -1,9 +1,6 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify, abort
 from tcc_app.db import get_db_connection
 import csv, os
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import Ridge
 
 main_bp = Blueprint('main_bp', __name__)
 
@@ -95,11 +92,9 @@ def ver_estoque():
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
 
-    # categorias disponíveis
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
     categorias = sorted([r['categoria'] for r in cur.fetchall() if r['categoria']])
 
-    # tabela
     sql = """
     SELECT p.id, p.nome, p.categoria, p.preco_venda, p.preco_custo, p.quantidade AS qtd_inicial,
            COALESCE(SUM(iv.quantidade),0) AS vendidos
@@ -117,10 +112,7 @@ def ver_estoque():
     rows = cur.fetchall()
     cur.close(); conn.close()
 
-    tabela = []
-    total_itens = 0
-    total_custo = 0.0
-    total_venda = 0.0
+    tabela, total_itens, total_custo, total_venda = [], 0, 0.0, 0.0
     for r in rows:
         em_estoque = int(r['qtd_inicial']) - int(r['vendidos'])
         if em_estoque < 0: em_estoque = 0
@@ -132,7 +124,6 @@ def ver_estoque():
             perc_vendido = round(100.0 * int(r['vendidos']) / int(r['qtd_inicial']), 1)
         baixo_limite = max(5, int(0.2 * int(r['qtd_inicial'])))
         status = "Baixo" if em_estoque <= baixo_limite else "OK"
-
         tabela.append({
             "id": r['id'],
             "nome": r['nome'],
@@ -245,40 +236,95 @@ def api_previsao():
     if not rows:
         return jsonify({"labels_hist": [], "hist": [], "labels_pred": [], "pred": []})
 
-    s = pd.Series({r['dia']: int(r['qtd']) for r in rows}).sort_index()
-    s.index = pd.to_datetime(s.index)
+    # ===== Tenta caminho "pesado" apenas aqui (lazy import) =====
+    try:
+        import pandas as pd
+        import numpy as np
+        from sklearn.linear_model import Ridge
 
-    # Features: tendência + dummies dow
-    X = pd.DataFrame({"t": np.arange(len(s)), "dow": s.index.dayofweek}, index=s.index)
-    X = pd.get_dummies(X, columns=["dow"], drop_first=True)
-    y = s.values
-    model = Ridge(alpha=1.0).fit(X, y)
+        s = pd.Series({r['dia']: int(r['qtd']) for r in rows}).sort_index()
+        s.index = pd.to_datetime(s.index)
 
-    h = 14
-    fut_idx = pd.date_range(s.index.max() + pd.Timedelta(days=1), periods=h, freq="D")
-    Xf = pd.DataFrame({"t": np.arange(len(s), len(s)+h), "dow": fut_idx.dayofweek}, index=fut_idx)
-    Xf = pd.get_dummies(Xf, columns=["dow"], drop_first=True).reindex(columns=X.columns, fill_value=0)
-    y_lr = model.predict(Xf)
+        X = pd.DataFrame({"t": np.arange(len(s)), "dow": s.index.dayofweek}, index=s.index)
+        X = pd.get_dummies(X, columns=["dow"], drop_first=True)
+        y = s.values
+        model = Ridge(alpha=1.0).fit(X, y)
 
-    ma7 = s.rolling(7, min_periods=1).mean().iloc[-1]
-    y_pred = np.clip(0.7*y_lr + 0.3*ma7, 0, None)
+        h = 14
+        fut_idx = pd.date_range(s.index.max() + pd.Timedelta(days=1), periods=h, freq="D")
+        Xf = pd.DataFrame({"t": np.arange(len(s), len(s)+h), "dow": fut_idx.dayofweek}, index=fut_idx)
+        Xf = pd.get_dummies(Xf, columns=["dow"], drop_first=True).reindex(columns=X.columns, fill_value=0)
+        y_lr = model.predict(Xf)
 
-    return jsonify({
-        "labels_hist": s.index.strftime("%Y-%m-%d").tolist()[-60:],
-        "hist": s.values.tolist()[-60:],
-        "labels_pred": fut_idx.strftime("%Y-%m-%d").tolist(),
-        "pred": y_pred.round(2).tolist()
-    })
+        ma7 = s.rolling(7, min_periods=1).mean().iloc[-1]
+        y_pred = np.clip(0.7*y_lr + 0.3*ma7, 0, None)
+
+        return jsonify({
+            "labels_hist": s.index.strftime("%Y-%m-%d").tolist()[-60:],
+            "hist": s.values.tolist()[-60:],
+            "labels_pred": fut_idx.strftime("%Y-%m-%d").tolist(),
+            "pred": y_pred.round(2).tolist()
+        })
+    except Exception as _:
+        # ===== Fallback leve: numpy puro (tendência + sazonalidade + MM7) =====
+        import numpy as np
+        # agrega em dict (dia -> qtd)
+        day_counts = {}
+        for r in rows:
+            d = r['dia']   # date
+            day_counts[d] = day_counts.get(d, 0) + int(r['qtd'])
+        days_sorted = sorted(day_counts.keys())
+        y = np.array([day_counts[d] for d in days_sorted], dtype=float)
+        n = len(y)
+        t = np.arange(n, dtype=float)
+
+        # tendência linear
+        if n >= 2:
+            a, b = np.polyfit(t, y, 1)
+            trend = a * t + b
+        else:
+            trend = np.full(n, y.mean() if n else 0.0)
+
+        # sazonalidade semanal (resíduos médios por dia da semana)
+        dow_means = {i: [] for i in range(7)}
+        for i, d in enumerate(days_sorted):
+            dow_means[d.weekday()].append(y[i] - trend[i])
+        dow_adj = {k: (np.mean(v) if v else 0.0) for k, v in dow_means.items()}
+
+        # previsão 14 dias
+        h = 14
+        future_days = []
+        future_y = []
+        last_day = days_sorted[-1]
+        mm7 = y[-7:].mean() if n >= 1 else 0.0
+        for i in range(1, h+1):
+            d = last_day.toordinal() + i
+            # reconstruir date a partir do ordinal
+            import datetime as _dt
+            fd = _dt.date.fromordinal(d)
+            tt = n - 1 + i
+            base = (a * tt + b) if n >= 2 else (y.mean() if n else 0.0)
+            seasonal = dow_adj[fd.weekday()]
+            pred = 0.7 * (base + seasonal) + 0.3 * mm7
+            if pred < 0: pred = 0.0
+            future_days.append(fd.isoformat())
+            future_y.append(round(float(pred), 2))
+
+        return jsonify({
+            "labels_hist": [d.isoformat() for d in days_sorted][-60:],
+            "hist": [float(v) for v in y.tolist()][-60:],
+            "labels_pred": future_days,
+            "pred": future_y
+        })
 
 # =============== IMPORTAR CSV -> MYSQL (admin) ===============
 @main_bp.route('/admin/import_csv', methods=['POST', 'GET'])
 def import_csv():
     if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
-    # restringe ao admin por e-mail
     if session.get('usuario_email') != 'admin@demo.com':
         abort(403)
 
-    base = os.path.join(os.path.dirname(__file__), 'instance', 'data')
+    base = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'instance', 'data')
     users = os.path.join(base, 'users.csv')
     products = os.path.join(base, 'products.csv')
     sales = os.path.join(base, 'sales.csv')
@@ -288,7 +334,6 @@ def import_csv():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # USUÁRIOS
         if os.path.exists(users):
             with open(users, encoding='utf-8') as f:
                 r = csv.DictReader(f)
@@ -298,7 +343,6 @@ def import_csv():
                         VALUES (%s,%s,%s,%s)
                     """, (row['id'], row['nome'], row['email'], row['senha']))
 
-        # PRODUTOS
         if os.path.exists(products):
             with open(products, encoding='utf-8') as f:
                 r = csv.DictReader(f)
@@ -311,7 +355,6 @@ def import_csv():
                           row['quantidade'], row['categoria'] or None, row['subcategoria'] or None,
                           row['tamanho'] or None, row['data_chegada'] or None, row['usuario_id']))
 
-        # VENDAS
         if os.path.exists(sales):
             with open(sales, encoding='utf-8') as f:
                 r = csv.DictReader(f)
@@ -322,7 +365,6 @@ def import_csv():
                         VALUES (%s,%s,%s)
                     """, (row['id'], row['usuario_id'], data))
 
-        # ITENS
         if os.path.exists(items):
             with open(items, encoding='utf-8') as f:
                 r = csv.DictReader(f)
