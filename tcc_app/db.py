@@ -9,15 +9,15 @@ def _db_conf():
         password=os.getenv("DB_PASSWORD", "Phlgbabi@10"),
         database=os.getenv("DB_NAME", "banco_tcc"),
         port=int(os.getenv("DB_PORT", "3306")),
-        autocommit=False
+        autocommit=False,
     )
 
 def get_db_connection():
-    # conexão “nova” (use em operações pontuais)
+    # Nova conexão (uso pontual)
     return mysql.connector.connect(**_db_conf())
 
 def get_db():
-    # conexão “por request” (reuse)
+    # Conexão reaproveitada por request
     if 'db' not in g:
         g.db = mysql.connector.connect(**_db_conf())
     return g.db
@@ -29,6 +29,10 @@ def close_db(e=None):
             db.close()
         except Exception:
             pass
+
+# 🔧 Alias para compatibilidade com __init__.py antigo
+def close_db_connection(e=None):
+    return close_db(e)
 
 def init_app(app):
     app.teardown_appcontext(close_db)
