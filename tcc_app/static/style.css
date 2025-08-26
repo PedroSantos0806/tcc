@@ -253,26 +253,53 @@ button:hover {
     }
 }
 .card {
-  background: #fff;
-  border: 1px solid #eaeaea;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 12px 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  transition: transform .15s ease;
+  color: #0f172a; /* <- texto sempre visível */
 }
 .card h3 {
   margin: 0 0 6px 0;
-  font-size: 14px;
-  color: #555;
-  font-weight: 600;
+  font-size: 13px;
+  color: #334155;        /* título sempre visível */
+  font-weight: 700;
+  letter-spacing: .3px;
   text-transform: uppercase;
-  letter-spacing: .4px;
 }
 .card p {
   margin: 0;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #0f172a;        /* valor sempre visível */
 }
-.form-box { display:flex; gap:8px; align-items:center; margin:8px 0 12px; }
-.form-box select, .form-box button {
-  padding: 8px 10px; border-radius: 8px; border:1px solid #ddd; background:#fff;
+.card:hover { transform: translateY(-2px); }
+
+/* grid dos cards (já usado nas páginas) */
+.cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
 }
+
+/* ===== Quick actions da Home ===== */
+.quick-actions{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:16px;
+  margin-top: 18px;
+}
+.qa{
+  display:flex; align-items:center; gap:12px;
+  background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+  padding:14px 16px; text-decoration:none;
+  color:#0f172a;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.qa:hover{ transform: translateY(-2px); box-shadow:0 6px 14px rgba(0,0,0,.08);}
+.qa-emoji{ font-size:22px; line-height:1; }
+.qa-text{ font-weight:700; }
