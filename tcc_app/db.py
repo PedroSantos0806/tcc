@@ -1,53 +1,31 @@
 import os
+from dotenv import load_dotenv
 import mysql.connector
 from flask import g
 
-def _db_conf():
-    conf = dict(
-        host=os.getenv("DB_HOST", "191.36.128.250"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "Phlgbabi@10"),
-        database=os.getenv("DB_NAME", "banco_tcc"),
-        port=int(os.getenv("DB_PORT", "3306")),
-        autocommit=False,
-
-        # >>> muito importante para Render: falhar rápido se não conectar
-        connection_timeout=5,
-
-        # pool leve (opcional; se preferir, comente as 2 linhas abaixo)
-        pool_name="tcc_pool",
-        pool_size=2,
-    )
-
-    # SSL opcional (se o host exigir)
-    ssl_on = os.getenv("DB_SSL", "0").lower() in ("1", "true", "yes")
-    if ssl_on:
-        ssl_ca = os.getenv("DB_SSL_CA_PATH", os.path.join(os.path.dirname(__file__), "certs", "DigiCertGlobalRootCA.pem"))
-        if os.path.exists(ssl_ca):
-            conf["ssl_ca"] = ssl_ca
-    return conf
+load_dotenv()  # carrega .env da raiz
 
 def get_db_connection():
-    """Conexão avulsa para operações pontuais."""
-    return mysql.connector.connect(**_db_conf())
+    cfg = {
+        "host": os.getenv("DB_HOST", "127.0.0.1"),
+        "port": int(os.getenv("DB_PORT", "3306")),
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD", ""),
+        "database": os.getenv("DB_DATABASE", "banco_tcc"),
+        "autocommit": False,
+    }
+    ssl_ca = os.getenv("DB_SSL_CA")
+    if ssl_ca and os.path.exists(ssl_ca):
+        cfg["ssl_ca"] = ssl_ca
+    return mysql.connector.connect(**cfg)
 
+# Opcional: conexão por request (se você já usa get_db() em algum lugar)
 def get_db():
-    """Conexão reaproveitada por request."""
-    if "db" not in g:
-        g.db = mysql.connector.connect(**_db_conf())
-    return g.db
+    if "db_conn" not in g:
+        g.db_conn = get_db_connection()
+    return g.db_conn
 
 def close_db(e=None):
-    db = g.pop("db", None)
+    db = g.pop("db_conn", None)
     if db is not None:
-        try:
-            db.close()
-        except Exception:
-            pass
-
-# alias pra compatibilidade antiga
-def close_db_connection(e=None):
-    return close_db(e)
-
-def init_app(app):
-    app.teardown_appcontext(close_db)
+        db.close()
