@@ -1,15 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
+
 <section class="hero">
-  <h2>O que você deseja fazer?</h2>
-  <p>Escolha uma das opções abaixo.</p>
+  <div class="hero-text">
+    <h1>Controle, Analise e Preveja</h1>
+    <p>Gestão de estoque, dashboard financeiro e previsão de vendas com IA — tudo em um só lugar.</p>
+    <div class="hero-cta">
+      <a class="btn primary" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
+      <a class="btn" href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
+    </div>
+  </div>
+
+  <div class="carousel" data-carousel>
+    <div class="slides">
+      <div class="slide active">
+        <h3>Previsão de Vendas</h3>
+        <p>Modelo leve (Ridge/fallback) com tendência e sazonalidade semanal.</p>
+      </div>
+      <div class="slide">
+        <h3>Controle de Estoque</h3>
+        <p>Alerta de baixo estoque, % vendido e valor de reposição.</p>
+      </div>
+      <div class="slide">
+        <h3>Dashboard Financeiro</h3>
+        <p>Vendido, estoque, custo total e lucro por produto/categoria.</p>
+      </div>
+    </div>
+    <div class="dots"></div>
+  </div>
 </section>
 
-<div class="quick-actions">
-  <a class="qa" href="{{ url_for('main_bp.cadastrar_produto') }}"><span class="qa-emoji">📦</span><span class="qa-text">Cadastrar Produto</span></a>
-  <a class="qa" href="{{ url_for('main_bp.cadastrar_venda') }}"><span class="qa-emoji">🧾</span><span class="qa-text">Registrar Venda</span></a>
-  <a class="qa" href="{{ url_for('main_bp.ver_estoque') }}"><span class="qa-emoji">🛒</span><span class="qa-text">Estoque</span></a>
-  <a class="qa" href="{{ url_for('main_bp.ver_previsao') }}"><span class="qa-emoji">📈</span><span class="qa-text">Previsão</span></a>
-  <a class="qa" href="{{ url_for('main_bp.dashboard') }}"><span class="qa-emoji">📊</span><span class="qa-text">Dashboard</span></a>
-</div>
+<section class="cards">
+  <a class="card" href="{{ url_for('main_bp.ver_estoque') }}">
+    <h4>Estoque</h4>
+    <p>Veja o que está acabando e planeje reposição.</p>
+  </a>
+  <a class="card" href="{{ url_for('main_bp.ver_previsao') }}">
+    <h4>Previsão</h4>
+    <p>Projete vendas dos próximos dias por categoria.</p>
+  </a>
+  <a class="card" href="{{ url_for('main_bp.dashboard') }}">
+    <h4>Dashboard</h4>
+    <p>Resumo visual de vendas, custos e lucros.</p>
+  </a>
+</section>
+
 {% endblock %}
