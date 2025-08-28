@@ -1,0 +1,12 @@
+<svg width="560" height="280" viewBox="0 0 560 280" xmlns="http://www.w3.org/2000/svg">
+  <rect width="560" height="280" rx="16" fill="#0b1220"></rect>
+  <g transform="translate(24,24)">
+    <rect x="0" y="0" width="512" height="180" rx="10" fill="#111827" stroke="#1f2937"></rect>
+    <polyline fill="none" stroke="#22d3ee" stroke-width="3" points="16,120 64,100 112,108 160,76 208,92 256,68 304,84 352,56 400,72 448,60"></polyline>
+    <polyline fill="none" stroke="#93c5fd" stroke-dasharray="6 6" stroke-width="3" points="448,60 496,48"></polyline>
+    <circle cx="448" cy="60" r="5" fill="#22d3ee"></circle>
+    <circle cx="496" cy="48" r="5" fill="#93c5fd"></circle>
+    <text x="0" y="212" fill="#93c5fd" font-family="Segoe UI" font-size="18" font-weight="700">Previsão de Vendas (linha pontilhada)</text>
+    <text x="0" y="236" fill="#cbd5e1" font-family="Segoe UI" font-size="13">Tendência + extrapolação curta (7 dias)</text>
+  </g>
+</svg>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="login-page">
+  <div class="login-container">
+    <h2>Definir nova senha</h2>
+    <p>E-mail: <strong>{{ email }}</strong></p>
+
+    <form method="POST" action="{{ url_for('auth_bp.resetar_senha') }}" class="form-box">
+      <input type="hidden" name="email" value="{{ email }}">
+      <label for="senha">Nova senha</label>
+      <div class="senha-box">
+        <input id="senha" name="senha" type="password" required>
+        <button type="button" id="toggleSenha" class="toggle-senha" aria-label="Alternar visualização da senha">👁️</button>
+      </div>
+      <button type="submit">Salvar nova senha</button>
+    </form>
+
+    <div class="login-link">
+      <a href="{{ url_for('auth_bp.login') }}">Voltar ao login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

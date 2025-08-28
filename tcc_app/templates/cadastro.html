@@ -1,34 +1,32 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro - Previsão de Demanda</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="login-page">
-    <div class="login-container">
-        <h2>Crie sua conta</h2>
+{% extends "base.html" %}
+{% block content %}
+<div class="login-page">
+  <div class="login-container">
+    <h2>Criar Conta</h2>
 
-        {% if erro %}
-            <div class="erro-box">
-                <p class="erro-msg">{{ erro }}</p>
-            </div>
-        {% endif %}
+    {% if erro %}
+      <div class="erro-box">{{ erro }}</div>
+    {% endif %}
 
-        <form method="POST" class="form-box">
-            <label for="nome">Nome</label>
-            <input type="text" name="nome" id="nome" placeholder="Seu nome completo" required>
+    <form method="POST" class="form-box">
+      <label for="nome">Nome</label>
+      <input id="nome" name="nome" type="text" required>
 
-            <label for="email">E-mail</label>
-            <input type="email" name="email" id="email" placeholder="seu@email.com" required>
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" required>
 
-            <label for="senha">Senha</label>
-            <input type="password" name="senha" id="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
+      <label for="senha">Senha</label>
+      <div class="senha-box">
+        <input id="senha" name="senha" type="password" required>
+        <button type="button" id="toggleSenha" class="toggle-senha" aria-label="Alternar visualização da senha">👁️</button>
+      </div>
 
-            <button type="submit">Cadastrar</button>
-        </form>
+      <button type="submit">Criar Conta</button>
+    </form>
 
-        <p class="login-link">Já tem uma conta? <a href="{{ url_for('auth_bp.login') }}">Faça login</a></p>
+    <div class="login-link">
+      Já tem conta? <a href="{{ url_for('auth_bp.login') }}">Entrar</a>
     </div>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

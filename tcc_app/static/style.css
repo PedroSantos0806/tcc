@@ -244,3 +244,8 @@ button:hover { background-color: #0284c7; }
   background:#172554; border:1px solid #1d4ed8; color:#bfdbfe;
   padding:8px 12px; border-radius:8px; margin-bottom:8px;
 }
+
+.hero-art { display:flex; flex-direction:column; gap:12px; }
+.hero-art img { width:100%; height:auto; border-radius:12px; border:1px solid #334155; background:#0b1220; }
+.hero-art-mini { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+@media (max-width: 900px){ .hero-art-mini { grid-template-columns:1fr; } }

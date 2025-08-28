@@ -2,89 +2,75 @@
 {% block content %}
 <h1>Dashboard Geral</h1>
 
-<form method="GET" class="form-box" id="filtroForm">
-  <label for="categoria">Filtrar por categoria:</label>
-  <select name="categoria" id="categoria">
-    <option value="">Todas</option>
-    {% for cat in categorias %}
-      <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Aplicar</button>
-</form>
-
-<div class="cards-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0;">
-  <div class="card"><h3>Total Produtos</h3><p id="kpi-produtos">—</p></div>
-  <div class="card"><h3>Total Vendido</h3><p id="kpi-vendido">—</p></div>
-  <div class="card"><h3>Estoque Atual</h3><p id="kpi-estoque">—</p></div>
-  <div class="card"><h3>Lucro Total</h3><p id="kpi-lucro">—</p></div>
+<div class="explicacao">
+  <h3>O que estou vendo?</h3>
+  <p>
+    Este gráfico resume por produto: <strong>Vendido</strong>, <strong>Em Estoque</strong> (= inicial − vendidos),
+    <strong>Custo Total</strong> (vendido × custo) e <strong>Lucro</strong> (receita − custo).
+    Use o filtro por categoria para focar em um grupo específico.
+  </p>
 </div>
 
-<canvas id="graf1" height="140"></canvas>
-<br/>
-<canvas id="graf2" height="140"></canvas>
+<form method="GET" class="form-box">
+  <label for="categoria">Filtrar por categoria:</label>
+  <select name="categoria" id="categoria" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for cat in categorias %}
+      <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+  </select>
+</form>
+
+<canvas id="grafico" width="800" height="400"></canvas>
+
+<script type="application/json" id="labels-json">{{ nomes | tojson }}</script>
+<script type="application/json" id="vendidos-json">{{ vendidos | tojson }}</script>
+<script type="application/json" id="estoque-json">{{ em_estoque | tojson }}</script>
+<script type="application/json" id="custo-json">{{ custo | tojson }}</script>
+<script type="application/json" id="lucro-json">{{ lucro | tojson }}</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-function brl(v){ return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+document.addEventListener("DOMContentLoaded", function () {
+  const labels = JSON.parse(document.getElementById("labels-json").textContent);
+  const vendidos = JSON.parse(document.getElementById("vendidos-json").textContent);
+  const estoque = JSON.parse(document.getElementById("estoque-json").textContent);
+  const custo = JSON.parse(document.getElementById("custo-json").textContent);
+  const lucro = JSON.parse(document.getElementById("lucro-json").textContent);
 
-async function loadDash() {
-  const cat = new URLSearchParams(window.location.search).get('categoria') || '';
-  const res = await fetch(`/api/dashboard?categoria=${encodeURIComponent(cat)}`);
-  const data = await res.json();
-
-  // KPIs
-  document.getElementById('kpi-produtos').textContent = data.labels.length;
-  const sum = arr => arr.reduce((a,b)=>a+(+b||0),0);
-  document.getElementById('kpi-vendido').textContent = sum(data.vendidos);
-  document.getElementById('kpi-estoque').textContent = sum(data.estoque);
-  document.getElementById('kpi-lucro').textContent = brl(sum(data.lucro));
-
-  // Graf 1: Vendido x Estoque
-  const ctx1 = document.getElementById('graf1').getContext('2d');
-  new Chart(ctx1, {
+  const ctx = document.getElementById('grafico').getContext('2d');
+  new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.labels,
+      labels: labels,
       datasets: [
-        { label: 'Vendido (un)', data: data.vendidos, backgroundColor: 'rgba(54,162,235,0.7)' },
-        { label: 'Estoque (un)', data: data.estoque, backgroundColor: 'rgba(255,206,86,0.7)' }
+        { label: 'Vendido (un)', data: vendidos, backgroundColor: 'rgba(54,162,235,0.7)' },
+        { label: 'Em Estoque (un)', data: estoque, backgroundColor: 'rgba(255,206,86,0.7)' },
+        { label: 'Custo Total (R$)', data: custo, backgroundColor: 'rgba(255,99,132,0.7)' },
+        { label: 'Lucro (R$)', data: lucro, backgroundColor: 'rgba(75,192,192,0.7)' }
       ]
     },
     options: {
       responsive: true,
       plugins: {
         legend: { position: 'top' },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}` } },
-        title: { display: true, text: 'Vendido x Estoque por Produto' }
+        title: { display: true, text: 'Resumo por Produto' },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const label = ctx.dataset.label || '';
+              const val = ctx.parsed.y;
+              if (label.includes('R$')) {
+                return `${label}: ${val.toLocaleString('pt-BR', { style:'currency', currency:'BRL' })}`;
+              }
+              return `${label}: ${val}`;
+            }
+          }
+        }
       },
       scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
-
-  // Graf 2: Custo x Lucro
-  const ctx2 = document.getElementById('graf2').getContext('2d');
-  new Chart(ctx2, {
-    type: 'bar',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { label: 'Custo Total (R$)', data: data.custo, backgroundColor: 'rgba(255,99,132,0.7)' },
-        { label: 'Lucro (R$)', data: data.lucro, backgroundColor: 'rgba(75,192,192,0.7)' }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${brl(ctx.parsed.y)}` } },
-        title: { display: true, text: 'Custo x Lucro por Produto' }
-      },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-}
-
-document.addEventListener('DOMContentLoaded', loadDash);
+});
 </script>
 {% endblock %}

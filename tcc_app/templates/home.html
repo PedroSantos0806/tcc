@@ -3,46 +3,22 @@
 
 <section class="hero">
   <div class="hero-text">
-    <h1>Controle, Analise e Preveja</h1>
+    <h1>Controle, Analise e <strong>Previsão</strong></h1>
     <p>Gestão de estoque, dashboard financeiro e previsão de vendas com IA — tudo em um só lugar.</p>
     <div class="hero-cta">
       <a class="btn primary" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
       <a class="btn" href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
+      <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Ver Estoque</a>
     </div>
   </div>
 
-  <div class="carousel" data-carousel>
-    <div class="slides">
-      <div class="slide active">
-        <h3>Previsão de Vendas</h3>
-        <p>Modelo leve (Ridge/fallback) com tendência e sazonalidade semanal.</p>
-      </div>
-      <div class="slide">
-        <h3>Controle de Estoque</h3>
-        <p>Alerta de baixo estoque, % vendido e valor de reposição.</p>
-      </div>
-      <div class="slide">
-        <h3>Dashboard Financeiro</h3>
-        <p>Vendido, estoque, custo total e lucro por produto/categoria.</p>
-      </div>
+  <div class="hero-art">
+    <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Ilustração de Previsão">
+    <div class="hero-art-mini">
+      <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="Ilustração de Estoque">
+      <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Ilustração de Dashboard">
     </div>
-    <div class="dots"></div>
   </div>
-</section>
-
-<section class="cards">
-  <a class="card" href="{{ url_for('main_bp.ver_estoque') }}">
-    <h4>Estoque</h4>
-    <p>Veja o que está acabando e planeje reposição.</p>
-  </a>
-  <a class="card" href="{{ url_for('main_bp.ver_previsao') }}">
-    <h4>Previsão</h4>
-    <p>Projete vendas dos próximos dias por categoria.</p>
-  </a>
-  <a class="card" href="{{ url_for('main_bp.dashboard') }}">
-    <h4>Dashboard</h4>
-    <p>Resumo visual de vendas, custos e lucros.</p>
-  </a>
 </section>
 
 {% endblock %}
