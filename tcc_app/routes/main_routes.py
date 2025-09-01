@@ -4,6 +4,7 @@ import csv, os
 
 main_bp = Blueprint('main_bp', __name__)
 
+# ===================== CSV helpers =====================
 def _csv_path(name):
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'instance', 'data', name)
 
@@ -13,109 +14,45 @@ def _read_csv(name):
     with open(path, encoding='utf-8') as f:
         return list(csv.DictReader(f))
 
-@main_bp.route('/')
-def home():
-    if 'usuario_id' not in session:
-        return redirect(url_for('auth_bp.login'))
-    return render_template('home.html', nome=session.get('usuario_nome'))
-
-# =============== CADASTRAR PRODUTO ===============
-@main_bp.route('/cadastrar_produto', methods=['GET', 'POST'])
-def cadastrar_produto():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
-
-    if request.method == 'POST':
-        f = request.form
-        obrig = ['nome','preco_custo','preco_venda','quantidade','categoria','data_chegada']
-        if any(not f.get(k) for k in obrig):
-            flash('Preencha todos os campos obrigatórios.')
-            return redirect(url_for('main_bp.cadastrar_produto'))
-        try:
-            conn = get_db_connection()
-            cur = conn.cursor()
-            preco_base = f.get('preco') or f.get('preco_custo')  # garante coluna 'preco' se existir no schema
-            cur.execute("""
-                INSERT INTO produtos (nome,preco,preco_custo,preco_venda,quantidade,categoria,subcategoria,tamanho,data_chegada,usuario_id)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (f['nome'], preco_base, f['preco_custo'], f['preco_venda'], f['quantidade'],
-                  f['categoria'], f.get('subcategoria') or None, f.get('tamanho') or None,
-                  f['data_chegada'], session['usuario_id']))
-            conn.commit()
-            cur.close(); conn.close()
-            flash('Produto cadastrado com sucesso!')
-        except Exception as e:
-            print("Erro ao cadastrar produto:", e)
-            flash('Erro ao cadastrar produto.')
-        return redirect(url_for('main_bp.cadastrar_produto'))
-    return render_template('cadastrar_produto.html')
-
-# =============== CADASTRAR VENDA ===============
-@main_bp.route('/cadastrar_venda', methods=['GET', 'POST'])
-def cadastrar_venda():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
-    uid = session['usuario_id']
-
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM produtos WHERE usuario_id=%s ORDER BY nome", (uid,))
-    produtos = cur.fetchall()
-
-    if request.method == 'POST':
-        data_venda = request.form.get('data_venda')
-        ids = request.form.getlist('produto_id[]')
-        qtds = request.form.getlist('quantidade[]')
-        if not data_venda or not ids or not qtds:
-            flash("Preencha todos os campos.")
-            cur.close(); conn.close()
-            return redirect(url_for('main_bp.cadastrar_venda'))
-        try:
-            cur.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s, %s)", (uid, data_venda))
-            venda_id = cur.lastrowid
-            for pid, q in zip(ids, qtds):
-                if not pid or not q: continue
-                cur.execute("SELECT preco_venda FROM produtos WHERE id=%s AND usuario_id=%s", (pid, uid))
-                row = cur.fetchone()
-                if not row: continue
-                cur.execute("""
-                    INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
-                    VALUES (%s,%s,%s,%s)
-                """, (venda_id, pid, int(q), float(row['preco_venda'])))
-            conn.commit()
-            flash("Venda registrada com sucesso!")
-        except Exception as e:
-            print("Erro ao registrar venda:", e)
-            conn.rollback()
-            flash("Erro ao registrar venda.")
-        cur.close(); conn.close()
-        return redirect(url_for('main_bp.cadastrar_venda'))
-
-    cur.close(); conn.close()
-    return render_template("registrar_venda.html", produtos=produtos)
-
-# Helpers CSV -> por e-mail da sessão
 def _csv_user_id_for_email(email):
     for row in _read_csv('users.csv'):
-        if row.get('email','').strip().lower() == (email or '').lower():
+        if (row.get('email','') or '').strip().lower() == (email or '').lower():
             try:
                 return int(row.get('id') or 0)
             except:
                 return None
     return None
 
-def _csv_dashboard_rows(uid_db, email):
-    # monta métricas (nome, vendidos, estoque, custo_total, receita_total) a partir de CSV
+def _csv_categories_for_email(email):
+    """ Retorna lista de categorias distintas do CSV para o usuário (por e-mail). """
+    uid = _csv_user_id_for_email(email)
+    if not uid:
+        return []
+    products = [p for p in _read_csv('products.csv') if p.get('usuario_id') == str(uid)]
+    cats = sorted({ (p.get('categoria') or '').strip() for p in products if (p.get('categoria') or '').strip() })
+    return cats
+
+def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
+    """
+    Monta métricas por produto a partir do CSV:
+    retorna cada item como: {"nome","qtd_vendida","qtd_inicial","custo_total","receita_total"}
+    Respeita categoria_sel quando informado.
+    """
     u_csv_id = _csv_user_id_for_email(email)
     if not u_csv_id: return []
-    products = [p for p in _read_csv('products.csv') if p.get('usuario_id') == str(u_csv_id)]
+
+    products_all = [p for p in _read_csv('products.csv') if p.get('usuario_id') == str(u_csv_id)]
+    if categoria_sel:
+        products = [p for p in products_all if (p.get('categoria') or '').strip() == categoria_sel]
+    else:
+        products = products_all
+    prod_ids = {p['id'] for p in products}
+
     sales    = [s for s in _read_csv('sales.csv') if s.get('usuario_id') == str(u_csv_id)]
     items    = _read_csv('items.csv')
 
-    # index por venda
     sale_ids = {s['id'] for s in sales}
-    items    = [i for i in items if i.get('venda_id') in sale_ids]
-
-    # index produto
-    prod_by_id = {p['id']: p for p in products}
+    items    = [i for i in items if i.get('venda_id') in sale_ids and i.get('produto_id') in prod_ids]
 
     # agregação por produto
     agg = {}
@@ -138,7 +75,6 @@ def _csv_dashboard_rows(uid_db, email):
             agg[pid]["receita_total"] += q * pu
             agg[pid]["custo_total"]   += q * agg[pid]["preco_custo"]
 
-    # retorna lista padronizada
     out = []
     for p in agg.values():
         out.append({
@@ -151,7 +87,10 @@ def _csv_dashboard_rows(uid_db, email):
     return out
 
 def _csv_previsao_series(email, categoria_sel=None):
-    import datetime as _dt
+    """
+    Retorna dict por dia {'YYYY-MM-DD': total_qtd} vindo do CSV,
+    filtrando por categoria quando informado.
+    """
     u_csv_id = _csv_user_id_for_email(email)
     if not u_csv_id: return {}
     products = [p for p in _read_csv('products.csv') if p.get('usuario_id') == str(u_csv_id)]
@@ -164,21 +103,110 @@ def _csv_previsao_series(email, categoria_sel=None):
 
     items = [i for i in _read_csv('items.csv') if i.get('produto_id') in prod_ids and i.get('venda_id') in sale_id_by_date]
 
-    # soma por dia
     from collections import defaultdict
     daily = defaultdict(int)
     for it in items:
         dia = sale_id_by_date[it['venda_id']]
         try:
             q = int(it.get('quantidade') or 0)
-        except: q = 0
+        except: 
+            q = 0
         daily[dia] += q
-    return dict(daily)  # { 'YYYY-MM-DD': qtd }
+    return dict(daily)
+
+# ===================== Rotas =====================
+@main_bp.route('/')
+def home():
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
+    return render_template('home.html', nome=session.get('usuario_nome'))
+
+# =============== CADASTRAR PRODUTO ===============
+@main_bp.route('/cadastrar_produto', methods=['GET', 'POST'])
+def cadastrar_produto():
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
+
+    if request.method == 'POST':
+        f = request.form
+        obrig = ['nome', 'preco_custo', 'preco_venda', 'quantidade', 'categoria', 'data_chegada']
+        if any(not f.get(k) for k in obrig):
+            flash('Preencha todos os campos obrigatórios.')
+            return redirect(url_for('main_bp.cadastrar_produto'))
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            # 'preco' (base) pode não existir no schema antigo; aqui preenche com preco_custo por compatibilidade
+            preco_base = f.get('preco') or f.get('preco_custo')
+            cur.execute("""
+                INSERT INTO produtos (nome,preco,preco_custo,preco_venda,quantidade,categoria,subcategoria,tamanho,data_chegada,usuario_id)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                f['nome'], preco_base, f['preco_custo'], f['preco_venda'], f['quantidade'],
+                f['categoria'], f.get('subcategoria') or None, f.get('tamanho') or None,
+                f['data_chegada'], session['usuario_id']
+            ))
+            conn.commit()
+            cur.close(); conn.close()
+            flash('Produto cadastrado com sucesso!')
+        except Exception as e:
+            print("Erro ao cadastrar produto:", e)
+            flash('Erro ao cadastrar produto.')
+        return redirect(url_for('main_bp.cadastrar_produto'))
+
+    return render_template('cadastrar_produto.html')
+
+# =============== CADASTRAR VENDA ===============
+@main_bp.route('/cadastrar_venda', methods=['GET', 'POST'])
+def cadastrar_venda():
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
+    uid = session['usuario_id']
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM produtos WHERE usuario_id=%s ORDER BY nome", (uid,))
+    produtos = cur.fetchall()
+
+    if request.method == 'POST':
+        data_venda = request.form.get('data_venda')
+        ids = request.form.getlist('produto_id[]')
+        qtds = request.form.getlist('quantidade[]')
+        if not data_venda or not ids or not qtds:
+            flash("Preencha todos os campos.")
+            cur.close(); conn.close()
+            return redirect(url_for('main_bp.cadastrar_venda'))
+        try:
+            cur.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s, %s)", (uid, data_venda))
+            venda_id = cur.lastrowid
+            for pid, q in zip(ids, qtds):
+                if not pid or not q:
+                    continue
+                cur.execute("SELECT preco_venda FROM produtos WHERE id=%s AND usuario_id=%s", (pid, uid))
+                row = cur.fetchone()
+                if not row:
+                    continue
+                cur.execute("""
+                    INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
+                    VALUES (%s,%s,%s,%s)
+                """, (venda_id, pid, int(q), float(row['preco_venda'])))
+            conn.commit()
+            flash("Venda registrada com sucesso!")
+        except Exception as e:
+            print("Erro ao registrar venda:", e)
+            conn.rollback()
+            flash("Erro ao registrar venda.")
+        cur.close(); conn.close()
+        return redirect(url_for('main_bp.cadastrar_venda'))
+
+    cur.close(); conn.close()
+    return render_template("registrar_venda.html", produtos=produtos)
 
 # =============== ESTOQUE (PÁGINA) ===============
 @main_bp.route('/ver_estoque')
 def ver_estoque():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
     uid = session['usuario_id']
     categoria_sel = request.args.get('categoria', '').strip() or None
 
@@ -235,29 +263,47 @@ def ver_estoque():
         "valor_custo": round(total_custo, 2),
         "valor_venda": round(total_venda, 2)
     }
-    return render_template('ver_estoque.html',
-                           produtos=tabela,
-                           categorias=categorias,
-                           categoria_selecionada=categoria_sel,
-                           kpis=kpis)
+    return render_template(
+        'ver_estoque.html',
+        produtos=tabela,
+        categorias=categorias,
+        categoria_selecionada=categoria_sel,
+        kpis=kpis
+    )
 
 # =============== DASHBOARD (PÁGINA) ===============
 @main_bp.route('/dashboard')
 def dashboard():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
     uid = session['usuario_id']
+    email = session.get('usuario_email')
+
+    # categorias do DB
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
-    categorias = sorted([r['categoria'] for r in cur.fetchall() if r['categoria']])
+    categorias_db = [r['categoria'] for r in cur.fetchall() if r['categoria']]
     cur.close(); conn.close()
+
+    # categorias do CSV (se houver)
+    categorias_csv = _csv_categories_for_email(email)
+
+    # merge + ordena
+    categorias = sorted({*categorias_db, *categorias_csv})
+
     categoria_sel = request.args.get('categoria', '').strip()
-    return render_template("dashboard.html", categorias=categorias, categoria_selecionada=categoria_sel,
-                           nomes=[], vendidos=[], em_estoque=[], custo=[], lucro=[])
+    return render_template(
+        "dashboard.html",
+        categorias=categorias,
+        categoria_selecionada=categoria_sel,
+        nomes=[], vendidos=[], em_estoque=[], custo=[], lucro=[]
+    )
 
 # =============== DASHBOARD (API JSON) ===============
 @main_bp.route('/api/dashboard')
 def api_dashboard():
-    if 'usuario_id' not in session: return jsonify({})
+    if 'usuario_id' not in session:
+        return jsonify({})
     uid = session['usuario_id']
     email = session.get('usuario_email')
     categoria_sel = request.args.get('categoria', '').strip() or None
@@ -284,8 +330,8 @@ def api_dashboard():
     db_rows = cur.fetchall()
     cur.close(); conn.close()
 
-    # CSV
-    csv_rows = _csv_dashboard_rows(uid, email)
+    # CSV (com filtro de categoria aplicado)
+    csv_rows = _csv_dashboard_rows(uid, email, categoria_sel=categoria_sel)
 
     # Mesclar por nome (soma os valores)
     from collections import defaultdict
@@ -312,24 +358,34 @@ def api_dashboard():
 # =============== PREVISÃO (PÁGINA) ===============
 @main_bp.route('/ver_previsao')
 def ver_previsao():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
     uid = session['usuario_id']
+    email = session.get('usuario_email')
+
+    # categorias do DB
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
-    categorias = sorted([r['categoria'] for r in cur.fetchall() if r['categoria']])
+    categorias_db = [r['categoria'] for r in cur.fetchall() if r['categoria']]
     cur.close(); conn.close()
+
+    # categorias do CSV
+    categorias_csv = _csv_categories_for_email(email)
+
+    categorias = sorted({*categorias_db, *categorias_csv})
     categoria_sel = request.args.get('categoria', '').strip()
     return render_template("ver_previsao.html", grafico=None, categorias=categorias, categoria_selecionada=categoria_sel)
 
 # =============== PREVISÃO (API JSON) ===============
 @main_bp.route('/api/previsao')
 def api_previsao():
-    if 'usuario_id' not in session: return jsonify({})
+    if 'usuario_id' not in session:
+        return jsonify({})
     uid = session['usuario_id']
     email = session.get('usuario_email')
     categoria_sel = request.args.get('categoria', '').strip() or None
 
-    # DB series: soma quantidade por dia
+    # Série do DB: soma quantidade por dia
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     sql = """
     SELECT DATE(v.data) AS dia, SUM(iv.quantidade) AS qtd
@@ -347,21 +403,21 @@ def api_previsao():
     rows = cur.fetchall()
     cur.close(); conn.close()
 
-    # CSV series (por email)
+    # Série do CSV (por e-mail), com filtro de categoria
     csv_daily = _csv_previsao_series(email, categoria_sel)
 
-    # Mescla: DB + CSV
+    # Mescla DB + CSV por dia
     from collections import defaultdict
     daily = defaultdict(int)
     for r in rows:
         daily[str(r['dia'])] += int(r['qtd'] or 0)
-    for k,v in (csv_daily or {}).items():
+    for k, v in (csv_daily or {}).items():
         daily[k] += int(v or 0)
 
     if not daily:
         return jsonify({"labels_hist": [], "hist": [], "labels_pred": [], "pred": []})
 
-    # ===== Modelo leve: tendência + sazonalidade + MM7 =====
+    # ===== Modelo leve: tendência + sazonalidade semanal + média móvel (MM7) =====
     import numpy as np, datetime as _dt
     days_sorted = sorted(daily.keys())
     y = np.array([daily[d] for d in days_sorted], dtype=float)
@@ -388,7 +444,7 @@ def api_previsao():
     future_y = []
     last_day = _dt.date.fromisoformat(days_sorted[-1])
     mm7 = y[-7:].mean() if n >= 1 else 0.0
-    for i in range(1, h+1):
+    for i in range(1, h + 1):
         fd = last_day + _dt.timedelta(days=i)
         tt = n - 1 + i
         base = (a * tt + b) if n >= 2 else (y.mean() if n else 0.0)
@@ -408,7 +464,8 @@ def api_previsao():
 # =============== IMPORTAR CSV -> MYSQL (admin) ===============
 @main_bp.route('/admin/import_csv', methods=['POST', 'GET'])
 def import_csv():
-    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
     if session.get('usuario_email') != 'admin@demo.com':
         abort(403)
 
@@ -439,9 +496,11 @@ def import_csv():
                         REPLACE INTO produtos
                         (id, nome, preco, preco_custo, preco_venda, quantidade, categoria, subcategoria, tamanho, data_chegada, usuario_id)
                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    """, (row['id'], row['nome'], row['preco'], row['preco_custo'], row['preco_venda'],
-                          row['quantidade'], row['categoria'] or None, row['subcategoria'] or None,
-                          row['tamanho'] or None, row['data_chegada'] or None, row['usuario_id']))
+                    """, (
+                        row['id'], row['nome'], row['preco'], row['preco_custo'], row['preco_venda'],
+                        row['quantidade'], row['categoria'] or None, row['subcategoria'] or None,
+                        row['tamanho'] or None, row['data_chegada'] or None, row['usuario_id']
+                    ))
 
         if os.path.exists(sales):
             with open(sales, encoding='utf-8') as f:

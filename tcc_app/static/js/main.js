@@ -101,7 +101,7 @@ function setupProdutoDinamico(){
       if (cfg.tamanhos){ popularSelect(tam, cfg.tamanhos); gTam.style.display='block'; } else { gTam.style.display='none'; }
     } else if (v === 'Tecnologia'){
       if (cfg.subcategorias){ popularSelect(sub, cfg.subcategorias); gSub.style.display='block'; } else { gSub.style.display='none'; }
-      gTam.style.display='none'; // <- não exige tamanho em tecnologia
+      gTam.style.display='none'; // não pede tamanho para tecnologia
     }
   });
 }

@@ -9,12 +9,13 @@ load_dotenv()
 
 def get_db_connection():
     """Abre uma conexão nova com o MySQL usando as variáveis do .env."""
+    db_name = os.getenv("DB_DATABASE") or os.getenv("DB_NAME") or "banco_tcc"
     cfg = {
         "host": os.getenv("DB_HOST", "127.0.0.1"),
         "port": int(os.getenv("DB_PORT", "3306")),
         "user": os.getenv("DB_USER", "root"),
         "password": os.getenv("DB_PASSWORD", ""),
-        "database": os.getenv("DB_DATABASE", "banco_tcc"),
+        "database": db_name,
         "autocommit": False,
     }
     ssl_ca = os.getenv("DB_SSL_CA")
@@ -35,8 +36,5 @@ def close_db(e=None):
         db.close()
 
 def init_app(app):
-    """
-    Integra com o Flask: registra o fechamento da conexão no teardown.
-    Mantém compatibilidade com from .db import init_app em __init__.py
-    """
+    """Registra o fechamento da conexão no teardown."""
     app.teardown_appcontext(close_db)

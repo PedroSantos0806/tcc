@@ -7,7 +7,7 @@
   <p>
     Este gráfico resume por produto: <strong>Vendido</strong>, <strong>Em Estoque</strong> (= inicial − vendidos),
     <strong>Custo Total</strong> (vendido × custo) e <strong>Lucro</strong> (receita − custo).
-    Use o filtro por categoria para focar em um grupo específico.
+    Usa dados do <strong>Banco</strong> e, quando existir, complementa com os <strong>CSVs</strong> do protótipo.
   </p>
 </div>
 
@@ -21,40 +21,40 @@
   </select>
 </form>
 
-<canvas id="grafico" width="800" height="400"></canvas>
-
-<script type="application/json" id="labels-json">{{ nomes | tojson }}</script>
-<script type="application/json" id="vendidos-json">{{ vendidos | tojson }}</script>
-<script type="application/json" id="estoque-json">{{ em_estoque | tojson }}</script>
-<script type="application/json" id="custo-json">{{ custo | tojson }}</script>
-<script type="application/json" id="lucro-json">{{ lucro | tojson }}</script>
+<canvas id="grafico" height="200"></canvas>
+<p id="msgDashVazio" style="display:none;margin-top:10px;">Sem dados para montar o dashboard.</p>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const labels = JSON.parse(document.getElementById("labels-json").textContent);
-  const vendidos = JSON.parse(document.getElementById("vendidos-json").textContent);
-  const estoque = JSON.parse(document.getElementById("estoque-json").textContent);
-  const custo = JSON.parse(document.getElementById("custo-json").textContent);
-  const lucro = JSON.parse(document.getElementById("lucro-json").textContent);
+async function loadDash(){
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('categoria') || '';
+  const res = await fetch(`/api/dashboard?categoria=${encodeURIComponent(cat)}`);
+  const data = await res.json();
+
+  if (!data.labels || data.labels.length === 0){
+    document.getElementById('grafico').style.display = 'none';
+    document.getElementById('msgDashVazio').style.display = 'block';
+    return;
+  }
 
   const ctx = document.getElementById('grafico').getContext('2d');
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels,
+      labels: data.labels,
       datasets: [
-        { label: 'Vendido (un)', data: vendidos, backgroundColor: 'rgba(54,162,235,0.7)' },
-        { label: 'Em Estoque (un)', data: estoque, backgroundColor: 'rgba(255,206,86,0.7)' },
-        { label: 'Custo Total (R$)', data: custo, backgroundColor: 'rgba(255,99,132,0.7)' },
-        { label: 'Lucro (R$)', data: lucro, backgroundColor: 'rgba(75,192,192,0.7)' }
+        { label: 'Vendido (un)', data: data.vendidos, backgroundColor: 'rgba(54,162,235,0.7)' },
+        { label: 'Em Estoque (un)', data: data.estoque, backgroundColor: 'rgba(255,206,86,0.7)' },
+        { label: 'Custo Total (R$)', data: data.custo, backgroundColor: 'rgba(255,99,132,0.7)' },
+        { label: 'Lucro (R$)', data: data.lucro, backgroundColor: 'rgba(75,192,192,0.7)' }
       ]
     },
     options: {
       responsive: true,
       plugins: {
         legend: { position: 'top' },
-        title: { display: true, text: 'Resumo por Produto' },
+        title: { display: true, text: 'Resumo por Produto (Banco + CSV)' },
         tooltip: {
           callbacks: {
             label: ctx => {
@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
       scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
-});
+}
+document.addEventListener('DOMContentLoaded', loadDash);
 </script>
 {% endblock %}

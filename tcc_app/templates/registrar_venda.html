@@ -30,7 +30,8 @@
   const btn = document.getElementById('addItemBtn');
   const wrap = document.getElementById('itens');
   btn.addEventListener('click', () => {
-    const div = document.createElement('div'); div.className='item';
+    const div = document.createElement('div'); 
+    div.className='item';
     div.innerHTML = `
       <label>Produto</label>
       <select name="produto_id[]" required>

@@ -29,7 +29,7 @@
   <main class="content">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="flash">
+        <div class="flash" role="status" aria-live="polite">
           {% for message in messages %}
             <div class="flash-item">{{ message }}</div>
           {% endfor %}

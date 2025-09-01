@@ -9,7 +9,7 @@
       <input type="hidden" name="email" value="{{ email }}">
       <label for="senha">Nova senha</label>
       <div class="senha-box">
-        <input id="senha" name="senha" type="password" required>
+        <input id="senha" name="senha" type="password" required minlength="6">
         <button type="button" id="toggleSenha" class="toggle-senha" aria-label="Alternar visualização da senha">👁️</button>
       </div>
       <button type="submit">Salvar nova senha</button>

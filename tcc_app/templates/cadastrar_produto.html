@@ -38,4 +38,75 @@
 
   <button type="submit">Salvar</button>
 </form>
+
+<!-- Fallback de comportamento dinâmico (caso main.js não carregue) -->
+<script>
+(function(){
+  const nome = document.getElementById('nome');
+  const cat  = document.getElementById('categoria');
+  const gSub = document.getElementById('grupo-subcategoria');
+  const gTam = document.getElementById('grupo-tamanho');
+  const sub  = document.getElementById('subcategoria');
+  const tam  = document.getElementById('tamanho');
+
+  const opcoes = {
+    'Vestuário': {
+      subcategorias: ['Camisetas','Calças','Jaquetas','Acessórios'],
+      tamanhos: ['PP','P','M','G','GG']
+    },
+    'Calçados': {
+      subcategorias: null,
+      tamanhos: ['34','35','36','37','38','39','40','41','42','43','44']
+    },
+    'Tecnologia': {
+      subcategorias: ['Periféricos','Áudio','Câmeras','Acessórios'],
+      tamanhos: null
+    }
+  };
+
+  function popularSelect(select, valores){
+    select.innerHTML = '';
+    valores.forEach(v=>{
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      select.appendChild(o);
+    });
+  }
+
+  // "IA" simples por palavras-chave no nome
+  function guessCategoria(text){
+    text = (text || '').toLowerCase();
+    if (/\b(camis|camisa|blusa|calça|jaqueta|casaco|vestido|meia)\b/.test(text)) return 'Vestuário';
+    if (/\b(tenis|tênis|bota|sandalia|sandalha|chinelo)\b/.test(text)) return 'Calçados';
+    if (/\b(mouse|teclado|fone|headset|webcam|camera|câmera|usb|hdmi)\b/.test(text)) return 'Tecnologia';
+    return '';
+  }
+
+  function aplicarCampos(catVal){
+    if(!catVal){ gSub.style.display='none'; gTam.style.display='none'; return; }
+    const cfg = opcoes[catVal];
+    if (!cfg) { gSub.style.display='none'; gTam.style.display='none'; return; }
+
+    if (catVal === 'Vestuário'){
+      if (cfg.subcategorias){ popularSelect(sub, cfg.subcategorias); gSub.style.display='block'; } else { gSub.style.display='none'; }
+      gTam.style.display='none';
+      sub.onchange = ()=>{ if(cfg.tamanhos){ popularSelect(tam, cfg.tamanhos); gTam.style.display='block'; } };
+    } else if (catVal === 'Calçados'){
+      gSub.style.display='none';
+      if (cfg.tamanhos){ popularSelect(tam, cfg.tamanhos); gTam.style.display='block'; } else { gTam.style.display='none'; }
+    } else if (catVal === 'Tecnologia'){
+      if (cfg.subcategorias){ popularSelect(sub, cfg.subcategorias); gSub.style.display='block'; } else { gSub.style.display='none'; }
+      gTam.style.display='none';
+    }
+  }
+
+  cat.addEventListener('change', ()=> aplicarCampos(cat.value));
+  nome.addEventListener('blur', ()=>{
+    if(!cat.value){
+      const g = guessCategoria(nome.value);
+      if (g) { cat.value = g; aplicarCampos(g); }
+    }
+  });
+})();
+</script>
 {% endblock %}
