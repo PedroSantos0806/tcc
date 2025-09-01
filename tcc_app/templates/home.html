@@ -11,14 +11,47 @@
       <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Ver Estoque</a>
     </div>
   </div>
+</section>
 
-  <div class="hero-art">
-    <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Ilustração de Previsão">
-    <div class="hero-art-mini">
-      <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="Ilustração de Estoque">
-      <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Ilustração de Dashboard">
+<section class="carousel" data-carousel>
+  <div class="slides">
+    <div class="slide">
+      <div class="slide-card">
+        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Previsão de vendas">
+        <div class="slide-info">
+          <h2>Previsão de Vendas</h2>
+          <p>Modelo leve com tendência + sazonalidade por dia da semana e média móvel, para horizonte de 14 dias.</p>
+          <a class="btn primary" href="{{ url_for('main_bp.ver_previsao') }}">Explorar Previsões</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="slide-card">
+        <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="Controle de Estoque">
+        <div class="slide-info">
+          <h2>Controle de Estoque</h2>
+          <p>Saldo em tempo real (inicial − vendidos), alerta de baixo estoque e visão por categorias.</p>
+          <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Abrir Estoque</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="slide-card">
+        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Dashboard Financeiro">
+        <div class="slide-info">
+          <h2>Dashboard Financeiro</h2>
+          <p>Receita, custo e lucro por produto com gráficos claros e filtros.</p>
+          <a class="btn" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="dots" aria-label="Slides"></div>
+  <button class="nav prev" aria-label="Slide anterior">‹</button>
+  <button class="nav next" aria-label="Próximo slide">›</button>
 </section>
 
 {% endblock %}
