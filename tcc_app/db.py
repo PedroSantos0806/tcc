@@ -1,14 +1,12 @@
-# tcc_app/db.py
 import os
 from dotenv import load_dotenv
 import mysql.connector
 from flask import g
 
-# Carrega variáveis do .env da raiz
+# Carrega .env localmente; no Azure, usará App Settings
 load_dotenv()
 
-def get_db_connection():
-    """Abre uma conexão nova com o MySQL usando as variáveis do .env."""
+def _mysql_cfg():
     db_name = os.getenv("DB_DATABASE") or os.getenv("DB_NAME") or "banco_tcc"
     cfg = {
         "host": os.getenv("DB_HOST", "127.0.0.1"),
@@ -17,24 +15,30 @@ def get_db_connection():
         "password": os.getenv("DB_PASSWORD", ""),
         "database": db_name,
         "autocommit": False,
+        "connection_timeout": 10,
+        "raise_on_warnings": True,
     }
+    # SSL opcional (ex.: Azure MySQL pode exigir)
     ssl_ca = os.getenv("DB_SSL_CA")
     if ssl_ca and os.path.exists(ssl_ca):
         cfg["ssl_ca"] = ssl_ca
-    return mysql.connector.connect(**cfg)
+    return cfg
+
+def get_db_connection():
+    return mysql.connector.connect(**_mysql_cfg())
 
 def get_db():
-    """Retorna a conexão por request (reaproveita via flask.g)."""
     if "db_conn" not in g:
         g.db_conn = get_db_connection()
     return g.db_conn
 
 def close_db(e=None):
-    """Fecha a conexão atrelada ao request (se existir)."""
     db = g.pop("db_conn", None)
     if db is not None:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
 
 def init_app(app):
-    """Registra o fechamento da conexão no teardown."""
     app.teardown_appcontext(close_db)

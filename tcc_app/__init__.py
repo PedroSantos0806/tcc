@@ -8,14 +8,19 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
-    # registra teardown do DB
+    # DB teardown
     from .db import init_app as init_db
     init_db(app)
 
-    # importa blueprints da pasta routes/ (sem fazer mais nada)
+    # Blueprints
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
-
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+
+    # Health check para ver se subiu
+    @app.route("/health")
+    def health():
+        return {"status": "ok"}, 200
+
     return app
