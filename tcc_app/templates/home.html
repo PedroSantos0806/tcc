@@ -3,7 +3,7 @@
 
 <section class="hero">
   <div class="hero-text">
-    <h1>Controle, Analise e <strong>Previsão</strong></h1>
+    <h1>Controle, Análise e <strong>Previsão</strong></h1>
     <p>Gestão de estoque, dashboard financeiro e previsão de vendas com IA — tudo em um só lugar.</p>
     <div class="hero-cta">
       <a class="btn primary" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
@@ -12,6 +12,34 @@
     </div>
   </div>
 </section>
+
+<!-- Atalhos para as novas áreas do app -->
+<div class="cards-row" style="margin-top:18px;">
+  <a class="card" href="{{ url_for('restaurant_bp.menu') }}">
+    <h3>Menu</h3>
+    <p>Gerencie itens e receitas</p>
+  </a>
+
+  <a class="card" href="{{ url_for('restaurant_bp.ingredientes') }}">
+    <h3>Ingredientes</h3>
+    <p>Níveis, custo e alertas</p>
+  </a>
+
+  <a class="card" href="{{ url_for('restaurant_bp.registrar_venda_menu') }}">
+    <h3>Registrar Venda (Menu)</h3>
+    <p>Debita ingredientes automaticamente</p>
+  </a>
+
+  <a class="card" href="{{ url_for('restaurant_bp.lista_compras') }}">
+    <h3>Lista de Compras</h3>
+    <p>Quantidades sugeridas por previsão</p>
+  </a>
+
+  <a class="card" href="{{ url_for('restaurant_bp.relatorios') }}">
+    <h3>Relatórios</h3>
+    <p>Uso, custo e margem</p>
+  </a>
+</div>
 
 <section class="carousel" data-carousel>
   <div class="slides">

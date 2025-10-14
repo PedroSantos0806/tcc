@@ -12,8 +12,8 @@
     <tr>
       <th>Produto</th>
       <th>Categoria</th>
-      <th>Preço de Venda (R$)</th>
-      <th>Preço de Custo (R$)</th>
+      <th>Preço de Venda</th>
+      <th>Preço de Custo</th>
       <th>Quantidade Inicial</th>
       <th>Vendidos</th>
       <th>Em Estoque</th>
@@ -24,11 +24,11 @@
     <tr>
       <td>{{ produto.nome }}</td>
       <td>{{ produto.categoria }}</td>
-      <td>{{ produto.preco_venda }}</td>
-      <td>{{ produto.preco_custo }}</td>
-      <td>{{ produto.qtd_inicial }}</td>
-      <td>{{ produto.vendidos }}</td>
-      <td>{{ produto.em_estoque }}</td>
+      <td>{{ produto.preco_venda | moneybr }}</td>
+      <td>{{ produto.preco_custo | moneybr }}</td>
+      <td>{{ produto.qtd_inicial | intbr }}</td>
+      <td>{{ produto.vendidos | intbr }}</td>
+      <td>{{ produto.em_estoque | intbr }}</td>
     </tr>
     {% endfor %}
   </tbody>

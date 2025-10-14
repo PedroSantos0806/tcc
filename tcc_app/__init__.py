@@ -8,23 +8,39 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
+    # -----------------------------
+    # Filtros Jinja (PT-BR)
+    # -----------------------------
+    def _fmt_int(v):
+        try:
+            return f"{int(round(float(v)))}"
+        except Exception:
+            return "0"
+
+    def _fmt_money(v):
+        try:
+            n = float(v)
+        except Exception:
+            n = 0.0
+        s = f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"R$ {s}"
+
+    app.jinja_env.filters["intbr"] = _fmt_int     # {{ valor|intbr }}
+    app.jinja_env.filters["moneybr"] = _fmt_money # {{ valor|moneybr }}
+
     # DB teardown
     from .db import init_app as init_db
     init_db(app)
 
-    # Blueprints existentes
+    # Blueprints
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-    # >>> NOVOS BLUEPRINTS <<<
-    from .routes.menu_routes import menu_bp
-    from .routes.compras_routes import compras_bp
-    from .routes.relatorios_routes import relatorios_bp
-    app.register_blueprint(menu_bp)
-    app.register_blueprint(compras_bp)
-    app.register_blueprint(relatorios_bp)
+    # Blueprint do restaurante (Menu/Ingredientes/Compras/Relatórios)
+    from .routes.restaurant_routes import restaurant_bp
+    app.register_blueprint(restaurant_bp)
 
     # Health check
     @app.route("/health")
