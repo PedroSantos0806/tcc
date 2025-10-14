@@ -1,338 +1,249 @@
-# tcc_app/routes/restaurant_routes.py
-from __future__ import annotations
-from datetime import date, timedelta
-from collections import defaultdict, Counter
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from tcc_app.db import get_db_connection
 
-restaurant_bp = Blueprint("restaurant_bp", __name__, url_prefix="/restaurante")
+restaurant_bp = Blueprint("restaurant_bp", __name__)
 
-# -----------------------------
-# Helpers
-# -----------------------------
-def _uid():
-    return session.get("usuario_id")
+def _require_login():
+    if "usuario_id" not in session:
+        return False
+    return True
 
-def _as_float(x, default=0.0):
-    try:
-        return float(x)
-    except Exception:
-        return float(default)
-
-def _as_int(x, default=0):
-    try:
-        return int(x)
-    except Exception:
-        return int(default)
-
-# =====================================================================
-# INGREDIENTES
-# =====================================================================
-@restaurant_bp.route("/ingredientes", methods=["GET", "POST"])
-def ingredientes():
-    if not _uid():
-        return redirect(url_for("auth_bp.login"))
-    uid = _uid()
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-
-    if request.method == "POST":
-        f = request.form
-        cur.execute(
-            """
-            INSERT INTO ingredientes
-              (usuario_id, nome, unidade, custo, perecivel, estoque_atual, estoque_minimo)
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
-            """,
-            (
-                uid,
-                f.get("nome") or "",
-                f.get("unidade") or "",
-                _as_float(f.get("custo")),
-                1 if (f.get("perecivel") == "1") else 0,
-                _as_int(f.get("estoque_atual")),
-                _as_int(f.get("estoque_minimo")),
-            ),
-        )
-        conn.commit()
-        flash("Ingrediente cadastrado.")
-        cur.close()
-        conn.close()
-        return redirect(url_for("restaurant_bp.ingredientes"))
-
-    cur.execute(
-        "SELECT * FROM ingredientes WHERE usuario_id=%s ORDER BY nome",
-        (uid,),
-    )
-    ingredientes = cur.fetchall()
-    cur.close()
-    conn.close()
-    return render_template("ingredientes.html", ingredientes=ingredientes)
-
-# =====================================================================
-# MENU (itens vendidos) + RECEITAS (decomposição por ingrediente)
-# =====================================================================
+# ---------------------------------------
+# MENU – listar, criar e montar receita
+# ---------------------------------------
 @restaurant_bp.route("/menu", methods=["GET", "POST"])
 def menu():
-    if not _uid():
+    if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    uid = _uid()
+    uid = session["usuario_id"]
+
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
 
-    if request.method == "POST":
-        f = request.form
-        cur.execute(
-            """
-            INSERT INTO menu_itens (usuario_id, nome, preco, ativo)
-            VALUES (%s,%s,%s,%s)
-            """,
-            (uid, f.get("nome") or "", _as_float(f.get("preco")), 1),
-        )
-        conn.commit()
-        flash("Item de menu cadastrado.")
-        cur.close()
-        conn.close()
-        return redirect(url_for("restaurant_bp.menu"))
+    # Criação rápida de item (nome + preço)
+    if request.method == "POST" and request.form.get("acao") == "criar":
+        nome = (request.form.get("nome") or "").strip()
+        preco = request.form.get("preco") or "0"
+        if not nome:
+            flash("Informe um nome para o item do menu.")
+            cur.close(); conn.close()
+            return redirect(url_for("restaurant_bp.menu"))
+        try:
+            cur.execute(
+                "INSERT INTO menu_itens (usuario_id, nome, preco) VALUES (%s,%s,%s)",
+                (uid, nome, float(preco or 0.0)),
+            )
+            conn.commit()
+            flash("Item do menu criado.")
+        except Exception as e:
+            conn.rollback()
+            flash("Falha ao criar item do menu.")
+            print("menu:create ERR:", e)
 
-    # lista itens e suas receitas
-    cur.execute("SELECT * FROM menu_itens WHERE usuario_id=%s ORDER BY ativo DESC, nome", (uid,))
+    # dados para tela
+    cur.execute("SELECT id, nome, preco FROM menu_itens WHERE usuario_id=%s ORDER BY nome", (uid,))
     itens = cur.fetchall()
 
-    # carrega ingredientes para montar receitas
-    cur.execute("SELECT id, nome, unidade FROM ingredientes WHERE usuario_id=%s ORDER BY nome", (uid,))
-    ingredientes = cur.fetchall()
-
-    # receitas agrupadas
+    # produtos para montar receita
     cur.execute(
-        """
-        SELECT r.item_id, r.ingrediente_id, r.quantidade, i.nome AS ing_nome, i.unidade
-        FROM receitas r
-        JOIN ingredientes i ON i.id = r.ingrediente_id
-        WHERE r.usuario_id=%s
-        """,
+        "SELECT id, nome, preco_venda, preco_custo FROM produtos WHERE usuario_id=%s ORDER BY nome",
         (uid,),
     )
-    rows = cur.fetchall()
-    receitas = defaultdict(list)
-    for r in rows:
-        receitas[r["item_id"]].append(r)
+    produtos = cur.fetchall()
+
+    # receitas por item (mapa id_item -> lista de ingredientes)
+    receitas = {}
+    if itens:
+        ids = tuple([i["id"] for i in itens])
+        # work-around para 1 id só no IN
+        in_clause = "(%s)" if len(ids) == 1 else str(ids)
+        cur.execute(
+            f"""
+            SELECT r.id, r.menu_item_id, r.produto_id, r.qtd_por_item, p.nome AS produto_nome
+            FROM receitas r
+            JOIN produtos p ON p.id = r.produto_id
+            WHERE r.menu_item_id IN {in_clause}
+            """,
+            ids if len(ids) == 1 else None,
+        )
+        for row in cur.fetchall():
+            receitas.setdefault(row["menu_item_id"], []).append(row)
 
     cur.close()
     conn.close()
-    return render_template("menu.html", itens=itens, ingredientes=ingredientes, receitas=receitas)
+    return render_template("menu.html", itens=itens, produtos=produtos, receitas=receitas)
 
 @restaurant_bp.route("/menu/receita/add", methods=["POST"])
-def receita_add():
-    if not _uid():
+def menu_receita_add():
+    if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    uid = _uid()
-    f = request.form
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO receitas (usuario_id, item_id, ingrediente_id, quantidade)
-        VALUES (%s,%s,%s,%s)
-        """,
-        (uid, _as_int(f.get("item_id")), _as_int(f.get("ingrediente_id")), _as_float(f.get("quantidade"))),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    flash("Ingrediente adicionado à receita.")
-    return redirect(url_for("restaurant_bp.menu"))
+    uid = session["usuario_id"]
 
-@restaurant_bp.route("/menu/receita/del/<int:rid>", methods=["POST"])
-def receita_del(rid: int):
-    if not _uid():
-        return redirect(url_for("auth_bp.login"))
-    uid = _uid()
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM receitas WHERE usuario_id=%s AND id=%s", (uid, rid))
-    conn.commit()
-    cur.close()
-    conn.close()
-    flash("Ingrediente removido da receita.")
-    return redirect(url_for("restaurant_bp.menu"))
+    item_id = request.form.get("menu_item_id")
+    produto_id = request.form.get("produto_id")
+    qtd = request.form.get("qtd_por_item")
 
-# =====================================================================
-# REGISTRAR VENDA (pelo menu) -> debita ingredientes via receita
-# =====================================================================
-@restaurant_bp.route("/registrar-venda-menu", methods=["GET", "POST"])
-def registrar_venda_menu():
-    if not _uid():
-        return redirect(url_for("auth_bp.login"))
-    uid = _uid()
+    if not (item_id and produto_id and qtd):
+        flash("Preencha item, produto e quantidade.")
+        return redirect(url_for("restaurant_bp.menu"))
+
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
 
-    # carrega itens de menu ativos
-    cur.execute("SELECT * FROM menu_itens WHERE usuario_id=%s AND ativo=1 ORDER BY nome", (uid,))
-    itens = cur.fetchall()
+    # valida dono do item
+    cur.execute("SELECT id FROM menu_itens WHERE id=%s AND usuario_id=%s", (item_id, uid))
+    dono = cur.fetchone()
+    if not dono:
+        cur.close(); conn.close()
+        flash("Item não encontrado.")
+        return redirect(url_for("restaurant_bp.menu"))
+
+    try:
+        cur.execute(
+            "INSERT INTO receitas (menu_item_id, produto_id, qtd_por_item) VALUES (%s,%s,%s)",
+            (item_id, produto_id, float(qtd)),
+        )
+        conn.commit()
+        flash("Ingrediente adicionado à receita.")
+    except Exception as e:
+        conn.rollback()
+        flash("Falha ao adicionar ingrediente.")
+        print("menu_receita_add ERR:", e)
+    finally:
+        cur.close(); conn.close()
+
+    return redirect(url_for("restaurant_bp.menu"))
+
+@restaurant_bp.route("/menu/receita/del/<int:receita_id>", methods=["POST"])
+def menu_receita_del(receita_id: int):
+    if not _require_login():
+        return redirect(url_for("auth_bp.login"))
+    uid = session["usuario_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # valida se a receita é do usuário
+    cur.execute(
+        """
+        SELECT r.id
+        FROM receitas r
+        JOIN menu_itens m ON m.id = r.menu_item_id
+        WHERE r.id=%s AND m.usuario_id=%s
+        """,
+        (receita_id, uid),
+    )
+    row = cur.fetchone()
+    if not row:
+        cur.close(); conn.close()
+        flash("Receita não encontrada.")
+        return redirect(url_for("restaurant_bp.menu"))
+
+    try:
+        cur.execute("DELETE FROM receitas WHERE id=%s", (receita_id,))
+        conn.commit()
+        flash("Ingrediente removido.")
+    except Exception as e:
+        conn.rollback()
+        flash("Falha ao remover ingrediente.")
+        print("menu_receita_del ERR:", e)
+    finally:
+        cur.close(); conn.close()
+
+    return redirect(url_for("restaurant_bp.menu"))
+
+# ----------------------------------------------------
+# REGISTRAR VENDA (a partir do menu + expansão receita)
+# ----------------------------------------------------
+@restaurant_bp.route("/registrar_venda_menu", methods=["GET", "POST"])
+def registrar_venda_menu():
+    if not _require_login():
+        return redirect(url_for("auth_bp.login"))
+    uid = session["usuario_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
 
     if request.method == "POST":
-        data_venda = request.form.get("data_venda") or date.today().isoformat()
-        # cria venda "lógica" p/ rastreio
-        cur.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s,%s)", (uid, data_venda))
-        venda_id = cur.lastrowid
+        menu_item_id = request.form.get("menu_item_id")
+        qtd = int(request.form.get("quantidade") or 0)
+        data_venda = request.form.get("data_venda")
 
-        # mapeia receitas por item
+        if not (menu_item_id and qtd and data_venda):
+            flash("Preencha item, quantidade e data.")
+            cur.close(); conn.close()
+            return redirect(url_for("restaurant_bp.registrar_venda_menu"))
+
+        # pega receita do item
         cur.execute(
-            "SELECT * FROM receitas WHERE usuario_id=%s",
-            (uid,),
+            """
+            SELECT r.produto_id, r.qtd_por_item, p.preco_venda
+            FROM receitas r
+            JOIN produtos p ON p.id = r.produto_id
+            JOIN menu_itens m ON m.id = r.menu_item_id
+            WHERE r.menu_item_id=%s AND m.usuario_id=%s
+            """,
+            (menu_item_id, uid),
         )
-        rec = cur.fetchall()
-        receitas = defaultdict(list)
-        for r in rec:
-            receitas[r["item_id"]].append(r)
+        receita = cur.fetchall()
+        if not receita:
+            flash("Este item de menu não tem receita cadastrada.")
+            cur.close(); conn.close()
+            return redirect(url_for("restaurant_bp.registrar_venda_menu"))
 
-        # para cada item enviado
-        posted = []
-        for k, v in request.form.items():
-            if not k.startswith("qtd_"):
-                continue
-            item_id = _as_int(k.replace("qtd_", ""))
-            qtd = _as_int(v)
-            if qtd <= 0:
-                continue
-            posted.append((item_id, qtd))
+        try:
+            # cria venda
+            cur.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s,%s)", (uid, data_venda))
+            venda_id = cur.lastrowid
 
-        # debita ingredientes conforme receitas
-        for item_id, qtd in posted:
-            # salva em itens_venda (vincula a um produto "sintético" de menu_itens)
-            cur.execute(
-                "INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario) VALUES (%s,%s,%s,%s)",
-                (venda_id, None, qtd, 0.0),
-            )
-            # debita estoque
-            for r in receitas.get(item_id, []):
+            # expande receita -> itens_venda por produto
+            for r in receita:
+                produto_id = r["produto_id"]
+                qtd_total = float(r["qtd_por_item"]) * qtd
+                preco_unit = float(r["preco_venda"])
                 cur.execute(
                     """
-                    UPDATE ingredientes
-                    SET estoque_atual = GREATEST(0, estoque_atual - %s)
-                    WHERE id=%s AND usuario_id=%s
+                    INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
+                    VALUES (%s,%s,%s,%s)
                     """,
-                    (_as_float(r["quantidade"]) * qtd, r["ingrediente_id"], uid),
+                    (venda_id, produto_id, qtd_total, preco_unit),
                 )
 
-        conn.commit()
-        flash("Venda registrada e ingredientes debitados.")
-        cur.close()
-        conn.close()
+            conn.commit()
+            flash("Venda registrada a partir do menu!")
+        except Exception as e:
+            conn.rollback()
+            flash("Falha ao registrar venda.")
+            print("registrar_venda_menu ERR:", e)
+        finally:
+            cur.close(); conn.close()
+
         return redirect(url_for("restaurant_bp.registrar_venda_menu"))
 
-    cur.close()
-    conn.close()
+    # GET -> carrega itens do menu
+    cur.execute("SELECT id, nome, preco FROM menu_itens WHERE usuario_id=%s ORDER BY nome", (uid,))
+    itens = cur.fetchall()
+    cur.close(); conn.close()
     return render_template("registrar_venda_menu.html", itens=itens)
 
-# =====================================================================
-# LISTA DE COMPRAS (baseada em previsão + margem de segurança)
-# =====================================================================
-@restaurant_bp.route("/lista-compras")
-def lista_compras():
-    if not _uid():
+# ------------------------
+# Stubs para demais links
+# ------------------------
+@restaurant_bp.route("/ingredientes")
+def ingredientes():
+    if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    uid = _uid()
-    margem = _as_int(request.args.get("margem", 20))  # %
-    dias = _as_int(request.args.get("horizonte", 7))
+    # Você pode substituir por sua página real de ingredientes
+    return render_template("generic_stub.html", titulo="Estoque (Ingredientes)", msg="Em breve: visão por ingredientes.")
 
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
+@restaurant_bp.route("/lista_compras")
+def lista_compras():
+    if not _require_login():
+        return redirect(url_for("auth_bp.login"))
+    return render_template("generic_stub.html", titulo="Lista de Compras", msg="Em breve: lista automática baseada na previsão.")
 
-    # consumo histórico por ingrediente (últimas 4 semanas)
-    cur.execute(
-        """
-        SELECT r.ingrediente_id, SUM(iv.quantidade * r.quantidade) AS uso
-        FROM itens_venda iv
-        JOIN vendas v ON v.id = iv.venda_id AND v.usuario_id=%s
-        JOIN receitas r ON r.item_id = iv.produto_id OR r.item_id IS NOT NULL
-        WHERE v.data >= DATE_SUB(CURDATE(), INTERVAL 28 DAY) AND r.usuario_id=%s
-        GROUP BY r.ingrediente_id
-        """,
-        (uid, uid),
-    )
-    rows = cur.fetchall()
-    uso_medio_diario = {r["ingrediente_id"]: (float(r["uso"] or 0.0) / 28.0) for r in rows}
-
-    # ingredientes atuais
-    cur.execute("SELECT * FROM ingredientes WHERE usuario_id=%s", (uid,))
-    ingredientes = cur.fetchall()
-
-    sugestoes = []
-    for ing in ingredientes:
-        media = uso_medio_diario.get(ing["id"], 0.0)
-        demanda = media * dias
-        demanda *= (1.0 + margem / 100.0)
-        falta = max(0.0, demanda - float(ing["estoque_atual"] or 0.0))
-        if falta > 0.0:
-            sugestoes.append(
-                {
-                    "id": ing["id"],
-                    "nome": ing["nome"],
-                    "unidade": ing["unidade"],
-                    "custo": float(ing["custo"] or 0.0),
-                    "sugerido": round(falta, 2),
-                    "custo_estimado": round(falta * float(ing["custo"] or 0.0), 2),
-                }
-            )
-
-    total = round(sum(x["custo_estimado"] for x in sugestoes), 2)
-    cur.close()
-    conn.close()
-    return render_template(
-        "lista_compras.html",
-        itens=sugestoes,
-        margem=margem,
-        horizonte=dias,
-        total=total,
-    )
-
-# =====================================================================
-# RELATÓRIOS (uso / custo por ingrediente + KPIs)
-# =====================================================================
 @restaurant_bp.route("/relatorios")
 def relatorios():
-    if not _uid():
+    if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    uid = _uid()
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-
-    # KPIs simples
-    cur.execute(
-        """
-        SELECT 
-            COUNT(*) AS total_vendas,
-            COALESCE(SUM(iv.quantidade * iv.preco_unitario),0) AS receita
-        FROM vendas v 
-        LEFT JOIN itens_venda iv ON iv.venda_id = v.id
-        WHERE v.usuario_id=%s
-        """,
-        (uid,),
-    )
-    kpi = cur.fetchone() or {"total_vendas": 0, "receita": 0.0}
-
-    # custo por ingrediente (últimas 4 semanas)
-    cur.execute(
-        """
-        SELECT i.nome, i.unidade, i.custo,
-               COALESCE(SUM(r.quantidade * iv.quantidade),0) AS uso_total
-        FROM ingredientes i
-        LEFT JOIN receitas r ON r.ingrediente_id = i.id AND r.usuario_id=%s
-        LEFT JOIN itens_venda iv ON iv.produto_id = r.item_id
-        LEFT JOIN vendas v ON v.id = iv.venda_id AND v.usuario_id=%s
-        WHERE v.data >= DATE_SUB(CURDATE(), INTERVAL 28 DAY) OR v.id IS NULL
-        GROUP BY i.id
-        ORDER BY uso_total DESC, i.nome
-        """,
-        (uid, uid),
-    )
-    consumo = cur.fetchall()
-    for c in consumo:
-        c["custo_total"] = round(float(c["uso_total"] or 0.0) * float(c["custo"] or 0.0), 2)
-
-    cur.close()
-    conn.close()
-    return render_template("relatorios.html", kpi=kpi, consumo=consumo)
+    return render_template("generic_stub.html", titulo="Relatórios (Ingredientes)", msg="Em breve: relatórios por ingrediente.")
