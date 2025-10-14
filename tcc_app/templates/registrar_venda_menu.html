@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Registrar Venda (Itens do Menu)</h1>
+<form method="post" class="form-box">
+  <label>Data</label>
+  <input type="date" name="data" required />
+  <label>Item</label>
+  <select name="item_id" required>
+    {% for i in itens %}
+    <option value="{{ i.id }}">{{ i.nome }}</option>
+    {% endfor %}
+  </select>
+  <label>Quantidade</label>
+  <input type="number" name="qtd" min="1" value="1" />
+  <button type="submit">Registrar</button>
+</form>
+{% endblock %}

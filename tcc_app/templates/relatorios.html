@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Relatórios — Uso & Gasto por Ingrediente (últimas 4 semanas)</h1>
+<table class="table-padrao">
+  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Uso Total</th><th>Custo Total (R$)</th></tr></thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.nome }}</td><td>{{ r.unidade }}</td>
+      <td>{{ r.uso_total or 0 }}</td><td>{{ '%.2f'|format(r.custo_total or 0) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

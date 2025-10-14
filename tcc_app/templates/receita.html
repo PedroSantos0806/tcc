@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Receita — {{ item.nome }}</h1>
+<form method="post" class="form-box">
+  <select name="ingrediente_id" required>
+    <option value="">Ingrediente...</option>
+    {% for i in ingredientes %}
+    <option value="{{ i.id }}">{{ i.nome }} ({{ i.unidade }})</option>
+    {% endfor %}
+  </select>
+  <input name="qtd_por_item" type="number" step="0.01" placeholder="Qtd por item" required />
+  <button type="submit">Adicionar/Atualizar</button>
+</form>
+
+<table class="table-padrao">
+  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Qtd por item</th></tr></thead>
+  <tbody>
+    {% for c in componentes %}
+    <tr><td>{{ c.ing_nome }}</td><td>{{ c.unidade }}</td><td>{{ c.qtd_por_item }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

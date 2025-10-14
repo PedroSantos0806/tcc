@@ -18,6 +18,11 @@
         <a href="{{ url_for('main_bp.dashboard') }}">Dashboard</a>
         <a href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar Produto</a>
         <a href="{{ url_for('main_bp.cadastrar_venda') }}">Registrar Venda</a>
+        <a href="{{ url_for('menu_bp.itens_menu') }}">Menu</a>
+        <a href="{{ url_for('menu_bp.ingredientes') }}">Estoque (Ingredientes)</a>
+        <a href="{{ url_for('menu_bp.registrar_venda_menu') }}">Registrar Venda (Menu)</a>
+        <a href="{{ url_for('compras_bp.lista_compras') }}">Lista de Compras</a>
+        <a href="{{ url_for('relatorios_bp.relatorios_home') }}">Relatórios</a>
         <a href="{{ url_for('auth_bp.logout') }}">Sair</a>
       {% else %}
         <a href="{{ url_for('auth_bp.login') }}">Login</a>
