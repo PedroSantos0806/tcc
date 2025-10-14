@@ -1,13 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Relatórios — Uso & Gasto por Ingrediente (últimas 4 semanas)</h1>
+<h1>Relatórios (Ingredientes)</h1>
+
+<div class="cards-row">
+  <div class="card"><h3>Total de Vendas</h3><p>{{ kpi.total_vendas|fmt_int }}</p></div>
+  <div class="card"><h3>Receita (itens vendidos)</h3><p>{{ kpi.receita|fmt_money }}</p></div>
+</div>
+
+<h3 style="margin-top:10px;">Consumo e Custos (últimas 4 semanas)</h3>
 <table class="table-padrao">
-  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Uso Total</th><th>Custo Total (R$)</th></tr></thead>
+  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Uso Total</th><th>Custo Unit.</th><th>Custo Total</th></tr></thead>
   <tbody>
-    {% for r in rows %}
+    {% for c in consumo %}
     <tr>
-      <td>{{ r.nome }}</td><td>{{ r.unidade }}</td>
-      <td>{{ r.uso_total or 0 }}</td><td>{{ '%.2f'|format(r.custo_total or 0) }}</td>
+      <td>{{ c.nome }}</td>
+      <td>{{ c.unidade }}</td>
+      <td>{{ c.uso_total|fmt_int }}</td>
+      <td>{{ c.custo|fmt_money }}</td>
+      <td>{{ c.custo_total|fmt_money }}</td>
     </tr>
     {% endfor %}
   </tbody>

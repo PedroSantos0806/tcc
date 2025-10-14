@@ -231,3 +231,28 @@ button:hover { background-color: var(--brand-2); transform: translateY(-1px); }
   .slide-info p  { font-size: 18px; }
   .carousel .slide { min-height: 580px; }
 }
+
+/* ====== Menus em "Pastas" ====== */
+.nav-folders { gap: 8px; }
+.folder { position: relative; }
+.folder-btn {
+  background:#0f172a; color:var(--brand); border:1px solid #0f2036;
+  padding:10px 14px; border-radius:10px; cursor:pointer;
+}
+.folder-btn:hover { background:#152238; }
+.folder-menu {
+  position:absolute; top:44px; left:0; min-width:210px;
+  background: var(--bg-2); border:1px solid var(--border); border-radius:12px;
+  display:none; flex-direction:column; padding:8px;
+}
+.folder:hover .folder-menu { display:flex; }
+.folder-menu a {
+  padding:8px 10px; border-radius:8px; color:var(--ink); text-decoration:none;
+}
+.folder-menu a:hover { background:#0f172a; }
+
+/* ====== Badges extras ====== */
+.badge-ok { background:#e6ffed; color:#166534; }
+.badge-crit { background:#fee2e2; color:#991b1b; }
+.muted { color: var(--muted); }
+

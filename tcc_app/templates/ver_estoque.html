@@ -3,8 +3,13 @@
 <h1>Meu Estoque</h1>
 
 <div class="explicacao">
-  <h3>Como calcular o “Em Estoque”?</h3>
-  <p>Para cada produto: <strong>Em Estoque = Quantidade Inicial − Vendidos</strong>. Use esta visão para priorizar reposição (produtos com pouco saldo) e identificar itens com maior giro.</p>
+  <h3>Como ler esta página?</h3>
+  <p>
+    <strong>Em Estoque = Quantidade Inicial − Vendidos</strong>. A coluna <em>Status</em> colore a situação:
+    <span class="badge-ok">OK</span> (dentro da média),
+    <span class="badge-warn">Baixo</span> (abaixo do mínimo) ou
+    <span class="badge-crit">Crítico</span> (muito abaixo da previsão mínima).
+  </p>
 </div>
 
 <table class="table-padrao">
@@ -12,23 +17,38 @@
     <tr>
       <th>Produto</th>
       <th>Categoria</th>
-      <th>Preço de Venda</th>
-      <th>Preço de Custo</th>
+      <th>Preço de Venda (R$)</th>
+      <th>Preço de Custo (R$)</th>
       <th>Quantidade Inicial</th>
       <th>Vendidos</th>
       <th>Em Estoque</th>
+      <th>Status</th>
     </tr>
   </thead>
   <tbody>
-    {% for produto in produtos %}
+    {% for p in produtos %}
+    {# regra simples de status: limite baixo = 20% do inicial (já calculado na rota); 
+       se estoque <= 50% do limite -> Crítico; <= limite -> Baixo; senão OK #}
+    {% set limite = (p.qtd_inicial * 0.2) if p.qtd_inicial else 0 %}
+    {% set critico = limite * 0.5 %}
+    {% set status = 'OK' %}
+    {% set status_class = 'badge-ok' %}
+    {% if p.em_estoque <= critico %}
+      {% set status = 'Crítico' %}
+      {% set status_class = 'badge-crit' %}
+    {% elif p.em_estoque <= limite %}
+      {% set status = 'Baixo' %}
+      {% set status_class = 'badge-warn' %}
+    {% endif %}
     <tr>
-      <td>{{ produto.nome }}</td>
-      <td>{{ produto.categoria }}</td>
-      <td>{{ produto.preco_venda | moneybr }}</td>
-      <td>{{ produto.preco_custo | moneybr }}</td>
-      <td>{{ produto.qtd_inicial | intbr }}</td>
-      <td>{{ produto.vendidos | intbr }}</td>
-      <td>{{ produto.em_estoque | intbr }}</td>
+      <td>{{ p.nome }}</td>
+      <td>{{ p.categoria }}</td>
+      <td>{{ p.preco_venda|fmt_money }}</td>
+      <td>{{ p.preco_custo|fmt_money }}</td>
+      <td>{{ p.qtd_inicial|fmt_int }}</td>
+      <td>{{ p.vendidos|fmt_int }}</td>
+      <td>{{ p.em_estoque|fmt_int }}</td>
+      <td><span class="badge {{ status_class }}">{{ status }}</span></td>
     </tr>
     {% endfor %}
   </tbody>

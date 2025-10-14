@@ -10,37 +10,57 @@
 <body>
   <header class="topbar">
     <div class="brand">Previsão de Vendas com IA</div>
-    <nav class="nav">
+
+    <nav class="nav nav-folders">
       {% if session.get('usuario_id') %}
 
-        <details class="menu">
-          <summary>Home</summary>
-          <a href="{{ url_for('main_bp.home') }}">Página inicial</a>
-          <a href="{{ url_for('main_bp.dashboard') }}">Dashboard</a>
-          <a href="{{ url_for('main_bp.ver_previsao') }}">Previsão</a>
-        </details>
+        <!-- Pasta: Início -->
+        <div class="folder">
+          <button class="folder-btn">Início</button>
+          <div class="folder-menu">
+            <a href="{{ url_for('main_bp.home') }}">Home</a>
+            <a href="{{ url_for('auth_bp.logout') }}">Sair</a>
+          </div>
+        </div>
 
-        <details class="menu">
-          <summary>Estoque</summary>
-          <a href="{{ url_for('main_bp.ver_estoque') }}">Estoque (Produtos)</a>
-          <a href="{{ url_for('restaurant_bp.ingredientes') }}">Estoque (Ingredientes)</a>
-          <a href="{{ url_for('restaurant_bp.lista_compras') }}">Lista de Compras</a>
-        </details>
+        <!-- Pasta: Relatórios -->
+        <div class="folder">
+          <button class="folder-btn">Relatórios</button>
+          <div class="folder-menu">
+            <a href="{{ url_for('main_bp.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('restaurant_bp.relatorios') }}">Relatórios (Ingredientes)</a>
+          </div>
+        </div>
 
-        <details class="menu">
-          <summary>Restaurante</summary>
-          <a href="{{ url_for('restaurant_bp.menu') }}">Menu (itens)</a>
-          <a href="{{ url_for('restaurant_bp.registrar_venda_menu') }}">Registrar Venda (Menu)</a>
-          <a href="{{ url_for('restaurant_bp.relatorios') }}">Relatórios</a>
-        </details>
+        <!-- Pasta: Estoque -->
+        <div class="folder">
+          <button class="folder-btn">Estoque</button>
+          <div class="folder-menu">
+            <a href="{{ url_for('main_bp.ver_estoque') }}">Estoque por Produto</a>
+            <a href="{{ url_for('restaurant_bp.ingredientes') }}">Estoque (Ingredientes)</a>
+            <a href="{{ url_for('restaurant_bp.lista_compras') }}">Lista de Compras</a>
+          </div>
+        </div>
 
-        <details class="menu">
-          <summary>Cadastro</summary>
-          <a href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar Produto</a>
-          <a href="{{ url_for('main_bp.cadastrar_venda') }}">Registrar Venda (Produtos)</a>
-        </details>
+        <!-- Pasta: Restaurante -->
+        <div class="folder">
+          <button class="folder-btn">Restaurante</button>
+          <div class="folder-menu">
+            <a href="{{ url_for('restaurant_bp.menu') }}">Menu</a>
+            <a href="{{ url_for('restaurant_bp.registrar_venda_menu') }}">Registrar Venda (Menu)</a>
+            <a href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar Produto</a>
+            <a href="{{ url_for('main_bp.cadastrar_venda') }}">Registrar Venda (Produtos)</a>
+          </div>
+        </div>
 
-        <a class="btn-plain" href="{{ url_for('auth_bp.logout') }}">Sair</a>
+        <!-- Pasta: Previsão -->
+        <div class="folder">
+          <button class="folder-btn">Previsão</button>
+          <div class="folder-menu">
+            <a href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
+          </div>
+        </div>
+
       {% else %}
         <a href="{{ url_for('auth_bp.login') }}">Login</a>
         <a href="{{ url_for('auth_bp.cadastro') }}">Criar Conta</a>
@@ -51,10 +71,8 @@
   <main class="content">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="flash" role="status" aria-live="polite">
-          {% for message in messages %}
-            <div class="flash-item">{{ message }}</div>
-          {% endfor %}
+        <div class="flash">
+          {% for message in messages %}<div class="flash-item">{{ message }}</div>{% endfor %}
         </div>
       {% endif %}
     {% endwith %}

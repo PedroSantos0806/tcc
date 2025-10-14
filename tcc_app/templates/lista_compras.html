@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Lista de Compras</h1>
-<form method="get" class="form-box">
-  <label>Margem de segurança (0–1)</label>
-  <input type="number" name="margem" step="0.05" value="{{ margem }}" />
-  <label>Horizonte (semanas)</label>
-  <input type="number" name="semanas" min="1" value="{{ semanas }}" />
+
+<form method="GET" class="form-box" style="max-width:520px;">
+  <label>Margem de Segurança (%)</label>
+  <input type="number" name="margem" min="0" max="100" value="{{ margem }}">
+  <label>Horizonte (dias)</label>
+  <input type="number" name="horizonte" min="1" max="30" value="{{ horizonte }}">
   <button type="submit">Recalcular</button>
 </form>
 
+{% if itens %}
 <div class="cards-row">
-  <div class="card"><h3>Total de Itens</h3><p>{{ total_itens }}</p></div>
-  <div class="card"><h3>Custo Estimado</h3><p>R$ {{ '%.2f'|format(total_custo) }}</p></div>
+  <div class="card"><h3>Total de Itens</h3><p>{{ itens|length }}</p></div>
+  <div class="card"><h3>Custo Estimado</h3><p>{{ total|fmt_money }}</p></div>
+  <div class="card"><h3>Margem</h3><p>{{ margem }}%</p></div>
 </div>
 
 <table class="table-padrao">
-  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Necessário</th><th>Custo Estimado (R$)</th></tr></thead>
+  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Qtd Sugerida</th><th>Custo Unit</th><th>Custo Estimado</th></tr></thead>
   <tbody>
-    {% for c in compras %}
+    {% for it in itens %}
     <tr>
-      <td>{{ c.nome }}</td><td>{{ c.unidade }}</td><td>{{ c.necessario }}</td><td>{{ c.custo_estimado }}</td>
+      <td>{{ it.nome }}</td>
+      <td>{{ it.unidade }}</td>
+      <td>{{ it.sugerido }}</td>
+      <td>{{ it.custo|fmt_money }}</td>
+      <td>{{ it.custo_estimado|fmt_money }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+{% else %}
+<p class="muted">Sem itens sugeridos no momento.</p>
+{% endif %}
 {% endblock %}

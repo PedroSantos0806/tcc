@@ -1,3 +1,4 @@
+# tcc_app/__init__.py
 import os
 from flask import Flask
 from dotenv import load_dotenv
@@ -8,38 +9,32 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
-    # -----------------------------
-    # Filtros Jinja (PT-BR)
-    # -----------------------------
-    def _fmt_int(v):
-        try:
-            return f"{int(round(float(v)))}"
-        except Exception:
-            return "0"
-
-    def _fmt_money(v):
-        try:
-            n = float(v)
-        except Exception:
-            n = 0.0
-        s = f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        return f"R$ {s}"
-
-    app.jinja_env.filters["intbr"] = _fmt_int     # {{ valor|intbr }}
-    app.jinja_env.filters["moneybr"] = _fmt_money # {{ valor|moneybr }}
-
     # DB teardown
     from .db import init_app as init_db
     init_db(app)
 
+    # --- Filtros Jinja para formatação (resolve 276.000 -> 276 etc.) ---
+    @app.template_filter("fmt_int")
+    def fmt_int(val):
+        try:
+            return f"{int(round(float(val))) :d}"
+        except Exception:
+            return val
+
+    @app.template_filter("fmt_money")
+    def fmt_money(val):
+        try:
+            return f"R$ {float(val):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except Exception:
+            return f"{val}"
+
     # Blueprints
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
+    from .routes.restaurant_routes import restaurant_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-
-    # Blueprint do restaurante (Menu/Ingredientes/Compras/Relatórios)
-    from .routes.restaurant_routes import restaurant_bp
     app.register_blueprint(restaurant_bp)
 
     # Health check
