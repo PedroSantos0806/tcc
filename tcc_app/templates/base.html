@@ -11,26 +11,17 @@
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
     <div class="brand-row">
-      <span class="brand-logo">🍔</span>
+      <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="Logo">
       <span class="brand-name">RestauPredict</span>
     </div>
 
     <nav class="side-nav">
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.home' else '' }}" href="{{ url_for('main_bp.home') }}">
-        <span>Dashboard</span>
-      </a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}">
-        <span>Menu</span>
-      </a>
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}">
-        <span>Estoque</span>
-      </a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.lista_compras' else '' }}" href="{{ url_for('restaurant_bp.lista_compras') }}">
-        <span>Lista de Compras</span>
-      </a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}">
-        <span>Relatórios</span>
-      </a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>Dashboard</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>Menu</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>Estoque</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.lista_compras' else '' }}" href="{{ url_for('restaurant_bp.lista_compras') }}"><span>Lista de Compras</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}"><span>Relatórios</span></a>
+      <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>Sair</span></a>
     </nav>
 
     <div class="side-user">
@@ -39,7 +30,6 @@
         <div class="user-name">{{ session.get('usuario_nome','Usuário') }}</div>
         <div class="user-email">{{ session.get('usuario_email','') }}</div>
       </div>
-      <a class="side-logout" href="{{ url_for('auth_bp.logout') }}">Sair</a>
     </div>
   </aside>
   {% endif %}

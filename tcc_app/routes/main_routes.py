@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify, abort
 from tcc_app.db import get_db_connection
-import csv, os
+import csv, os, datetime as dt
 
 main_bp = Blueprint('main_bp', __name__)
 
@@ -24,7 +24,6 @@ def _csv_user_id_for_email(email):
     return None
 
 def _csv_categories_for_email(email):
-    """ Retorna lista de categorias distintas do CSV para o usuário (por e-mail). """
     uid = _csv_user_id_for_email(email)
     if not uid:
         return []
@@ -33,11 +32,6 @@ def _csv_categories_for_email(email):
     return cats
 
 def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
-    """
-    Monta métricas por produto a partir do CSV:
-    retorna cada item como: {"nome","qtd_vendida","qtd_inicial","custo_total","receita_total"}
-    Respeita categoria_sel quando informado.
-    """
     u_csv_id = _csv_user_id_for_email(email)
     if not u_csv_id: return []
 
@@ -54,7 +48,6 @@ def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
     sale_ids = {s['id'] for s in sales}
     items    = [i for i in items if i.get('venda_id') in sale_ids and i.get('produto_id') in prod_ids]
 
-    # agregação por produto
     agg = {}
     for p in products:
         agg[p['id']] = {
@@ -87,10 +80,6 @@ def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
     return out
 
 def _csv_previsao_series(email, categoria_sel=None):
-    """
-    Retorna dict por dia {'YYYY-MM-DD': total_qtd} vindo do CSV,
-    filtrando por categoria quando informado.
-    """
     u_csv_id = _csv_user_id_for_email(email)
     if not u_csv_id: return {}
     products = [p for p in _read_csv('products.csv') if p.get('usuario_id') == str(u_csv_id)]
@@ -109,17 +98,63 @@ def _csv_previsao_series(email, categoria_sel=None):
         dia = sale_id_by_date[it['venda_id']]
         try:
             q = int(it.get('quantidade') or 0)
-        except: 
+        except:
             q = 0
         daily[dia] += q
     return dict(daily)
 
-# ===================== Rotas =====================
+# ===================== KPIs / Home =====================
+def _kpis_semana(uid):
+    """KPIs da semana corrente (segunda..domingo)."""
+    hoje = dt.date.today()
+    inicio = hoje - dt.timedelta(days=hoje.weekday())       # segunda
+    fim    = inicio + dt.timedelta(days=7)                  # próxima segunda (exclusive)
+
+    conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+
+    cur.execute("""
+        SELECT COUNT(DISTINCT v.id) AS vendas,
+               COALESCE(SUM(iv.quantidade * iv.preco_unitario),0) AS receita
+        FROM vendas v
+        LEFT JOIN itens_venda iv ON iv.venda_id = v.id
+        WHERE v.usuario_id = %s AND v.data >= %s AND v.data < %s
+    """, (uid, inicio, fim))
+    r = cur.fetchone() or {"vendas":0, "receita":0}
+
+    cur.execute("""
+        SELECT p.id, p.quantidade AS qtd_inicial,
+               COALESCE(SUM(iv.quantidade),0) AS vendidos
+        FROM produtos p
+        LEFT JOIN itens_venda iv ON iv.produto_id = p.id
+        LEFT JOIN vendas v ON v.id = iv.venda_id AND v.usuario_id = %s
+        WHERE p.usuario_id = %s
+        GROUP BY p.id
+    """, (uid, uid))
+    baixo = 0
+    falta = 0
+    for row in cur.fetchall():
+        ini = int(row["qtd_inicial"] or 0)
+        ven = int(row["vendidos"] or 0)
+        est = max(0, ini - ven)
+        if est == 0:
+            falta += 1
+        if est > 0 and est <= max(1, int(0.2 * ini)):
+            baixo += 1
+
+    cur.close(); conn.close()
+    return {
+        "vendas_semana": int(r["vendas"] or 0),
+        "receita_semana": float(r["receita"] or 0.0),
+        "itens_baixo": baixo,
+        "itens_falta": falta
+    }
+
 @main_bp.route('/')
 def home():
     if 'usuario_id' not in session:
         return redirect(url_for('auth_bp.login'))
-    return render_template('home.html', nome=session.get('usuario_nome'))
+    # leva direto ao novo dashboard
+    return redirect(url_for('main_bp.dashboard'))
 
 # =============== CADASTRAR PRODUTO ===============
 @main_bp.route('/cadastrar_produto', methods=['GET', 'POST'])
@@ -134,9 +169,7 @@ def cadastrar_produto():
             flash('Preencha todos os campos obrigatórios.')
             return redirect(url_for('main_bp.cadastrar_produto'))
         try:
-            conn = get_db_connection()
-            cur = conn.cursor()
-            # 'preco' (base) pode não existir no schema antigo; aqui preenche com preco_custo por compatibilidade
+            conn = get_db_connection(); cur = conn.cursor()
             preco_base = f.get('preco') or f.get('preco_custo')
             cur.execute("""
                 INSERT INTO produtos (nome,preco,preco_custo,preco_venda,quantidade,categoria,subcategoria,tamanho,data_chegada,usuario_id)
@@ -279,25 +312,16 @@ def dashboard():
     uid = session['usuario_id']
     email = session.get('usuario_email')
 
-    # categorias do DB
+    # categorias (para futuros filtros do gráfico, se quiser usar)
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
     categorias_db = [r['categoria'] for r in cur.fetchall() if r['categoria']]
     cur.close(); conn.close()
-
-    # categorias do CSV (se houver)
     categorias_csv = _csv_categories_for_email(email)
-
-    # merge + ordena
     categorias = sorted({*categorias_db, *categorias_csv})
 
-    categoria_sel = request.args.get('categoria', '').strip()
-    return render_template(
-        "dashboard.html",
-        categorias=categorias,
-        categoria_selecionada=categoria_sel,
-        nomes=[], vendidos=[], em_estoque=[], custo=[], lucro=[]
-    )
+    kpis = _kpis_semana(uid)
+    return render_template("dashboard.html", kpis=kpis, categorias=categorias)
 
 # =============== DASHBOARD (API JSON) ===============
 @main_bp.route('/api/dashboard')
@@ -308,7 +332,6 @@ def api_dashboard():
     email = session.get('usuario_email')
     categoria_sel = request.args.get('categoria', '').strip() or None
 
-    # DB
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
     sql = """
@@ -330,10 +353,8 @@ def api_dashboard():
     db_rows = cur.fetchall()
     cur.close(); conn.close()
 
-    # CSV (com filtro de categoria aplicado)
     csv_rows = _csv_dashboard_rows(uid, email, categoria_sel=categoria_sel)
 
-    # Mesclar por nome (soma os valores)
     from collections import defaultdict
     agg = defaultdict(lambda: {"vendidos":0,"estoque":0,"custo":0.0,"lucro":0.0})
     def add_row(nome, qtd_inicial, qtd_vendida, custo_total, receita_total):
@@ -355,7 +376,7 @@ def api_dashboard():
     lucro    = [round(agg[n]["lucro"],2) for n in labels]
     return jsonify({"labels": labels, "vendidos": vendidos, "estoque": estoque, "custo": custo, "lucro": lucro})
 
-# =============== PREVISÃO (PÁGINA) ===============
+# =============== PREVISÃO (PÁGINA/API) ===============
 @main_bp.route('/ver_previsao')
 def ver_previsao():
     if 'usuario_id' not in session:
@@ -363,20 +384,16 @@ def ver_previsao():
     uid = session['usuario_id']
     email = session.get('usuario_email')
 
-    # categorias do DB
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
     categorias_db = [r['categoria'] for r in cur.fetchall() if r['categoria']]
     cur.close(); conn.close()
 
-    # categorias do CSV
     categorias_csv = _csv_categories_for_email(email)
-
     categorias = sorted({*categorias_db, *categorias_csv})
     categoria_sel = request.args.get('categoria', '').strip()
     return render_template("ver_previsao.html", grafico=None, categorias=categorias, categoria_selecionada=categoria_sel)
 
-# =============== PREVISÃO (API JSON) ===============
 @main_bp.route('/api/previsao')
 def api_previsao():
     if 'usuario_id' not in session:
@@ -385,7 +402,6 @@ def api_previsao():
     email = session.get('usuario_email')
     categoria_sel = request.args.get('categoria', '').strip() or None
 
-    # Série do DB: soma quantidade por dia
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     sql = """
     SELECT DATE(v.data) AS dia, SUM(iv.quantidade) AS qtd
@@ -403,10 +419,8 @@ def api_previsao():
     rows = cur.fetchall()
     cur.close(); conn.close()
 
-    # Série do CSV (por e-mail), com filtro de categoria
     csv_daily = _csv_previsao_series(email, categoria_sel)
 
-    # Mescla DB + CSV por dia
     from collections import defaultdict
     daily = defaultdict(int)
     for r in rows:
@@ -417,31 +431,25 @@ def api_previsao():
     if not daily:
         return jsonify({"labels_hist": [], "hist": [], "labels_pred": [], "pred": []})
 
-    # ===== Modelo leve: tendência + sazonalidade semanal + média móvel (MM7) =====
     import numpy as np, datetime as _dt
     days_sorted = sorted(daily.keys())
     y = np.array([daily[d] for d in days_sorted], dtype=float)
-    n = len(y)
-    t = np.arange(n, dtype=float)
+    n = len(y); t = np.arange(n, dtype=float)
 
-    # tendência linear
     if n >= 2:
-        a, b = np.polyfit(t, y, 1)
-        trend = a * t + b
+        a, b = np.polyfit(t, y, 1); trend = a * t + b
     else:
         trend = np.full(n, y.mean() if n else 0.0)
 
-    # sazonalidade semanal (resíduos médios por dia da semana)
     dow_means = {i: [] for i in range(7)}
     for i, d in enumerate(days_sorted):
         dt_obj = _dt.date.fromisoformat(d)
         dow_means[dt_obj.weekday()].append(y[i] - trend[i])
-    dow_adj = {k: (np.mean(v) if v else 0.0) for k, v in dow_means.items()}
+    import numpy as _np
+    dow_adj = {k: (_np.mean(v) if v else 0.0) for k, v in dow_means.items()}
 
-    # previsão 14 dias
     h = 14
-    future_days = []
-    future_y = []
+    future_days, future_y = [], []
     last_day = _dt.date.fromisoformat(days_sorted[-1])
     mm7 = y[-7:].mean() if n >= 1 else 0.0
     for i in range(1, h + 1):
@@ -476,8 +484,7 @@ def import_csv():
     items = os.path.join(base, 'items.csv')
 
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+        conn = get_db_connection(); cur = conn.cursor()
 
         if os.path.exists(users):
             with open(users, encoding='utf-8') as f:

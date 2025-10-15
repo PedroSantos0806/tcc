@@ -1,77 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Dashboard Geral</h1>
+<h1>Dashboard</h1>
+<p class="muted">Visão geral do seu restaurante</p>
 
-<div class="explicacao">
-  <h3>O que estou vendo?</h3>
-  <p>
-    Este gráfico resume por produto: <strong>Vendido</strong>, <strong>Em Estoque</strong> (= inicial − vendidos),
-    <strong>Custo Total</strong> (vendido × custo) e <strong>Lucro</strong> (receita − custo).
-    Usa dados do <strong>Banco</strong> e, quando existir, complementa com os <strong>CSVs</strong> do protótipo.
-  </p>
+<!-- KPIs -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-title">Vendas desta Semana</div>
+    <div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Receita da Semana</div>
+    <div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Itens com Estoque Baixo</div>
+    <div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Itens em Falta</div>
+    <div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div>
+  </div>
 </div>
 
-<form method="GET" class="form-box">
-  <label for="categoria">Filtrar por categoria:</label>
-  <select name="categoria" id="categoria" onchange="this.form.submit()">
-      <option value="">Todas</option>
-      {% for cat in categorias %}
-      <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
-      {% endfor %}
-  </select>
-</form>
+<!-- Banner -->
+<div class="welcome-banner">
+  <h3>Bem-vindo ao RestauPredict!</h3>
+  <p>Comece configurando seu menu e ingredientes para rastrear estoque e gerar predições inteligentes.</p>
+  <div class="banner-actions">
+    <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">Configurar Menu</a>
+    <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Gerenciar Estoque</a>
+  </div>
+</div>
 
-<canvas id="grafico" height="200"></canvas>
-<p id="msgDashVazio" style="display:none;margin-top:10px;">Sem dados para montar o dashboard.</p>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-async function loadDash(){
-  const params = new URLSearchParams(window.location.search);
-  const cat = params.get('categoria') || '';
-  const res = await fetch(`/api/dashboard?categoria=${encodeURIComponent(cat)}`);
-  const data = await res.json();
-
-  if (!data.labels || data.labels.length === 0){
-    document.getElementById('grafico').style.display = 'none';
-    document.getElementById('msgDashVazio').style.display = 'block';
-    return;
-  }
-
-  const ctx = document.getElementById('grafico').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { label: 'Vendido (un)', data: data.vendidos, backgroundColor: 'rgba(54,162,235,0.7)' },
-        { label: 'Em Estoque (un)', data: data.estoque, backgroundColor: 'rgba(255,206,86,0.7)' },
-        { label: 'Custo Total (R$)', data: data.custo, backgroundColor: 'rgba(255,99,132,0.7)' },
-        { label: 'Lucro (R$)', data: data.lucro, backgroundColor: 'rgba(75,192,192,0.7)' }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: true, text: 'Resumo por Produto (Banco + CSV)' },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const label = ctx.dataset.label || '';
-              const val = ctx.parsed.y;
-              if (label.includes('R$')) {
-                return `${label}: ${val.toLocaleString('pt-BR', { style:'currency', currency:'BRL' })}`;
-              }
-              return `${label}: ${val}`;
-            }
-          }
-        }
-      },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-    }
-  });
-}
-document.addEventListener('DOMContentLoaded', loadDash);
-</script>
+<!-- Cards auxiliares (placeholder) -->
+<div class="cards-2col">
+  <div class="card big">
+    <h3>Predições da Próxima Semana</h3>
+    <div class="empty-state"><div class="emoji">📦</div><p class="muted">Configure seus itens do menu para ver predições</p></div>
+  </div>
+  <div class="card big">
+    <h3>Alertas de Estoque</h3>
+    <div class="empty-state"><div class="emoji">⚠️</div><p class="muted">Adicione ingredientes para monitorar alertas</p></div>
+  </div>
+</div>
 {% endblock %}

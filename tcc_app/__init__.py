@@ -2,6 +2,29 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
+# ---- Filtros Jinja (usados em vários templates) ----
+def _fmt_int(v):
+    try:
+        return f"{int(round(float(v or 0))):,}".replace(",", ".")
+    except Exception:
+        return "0"
+
+def _fmt_money(v):
+    try:
+        return "R$ " + f"{float(v or 0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except Exception:
+        return "R$ 0,00"
+
+def _fmt_date(dt):
+    try:
+        from datetime import datetime, date
+        if isinstance(dt, (datetime, date)):
+            return dt.strftime("%d/%m/%Y")
+        s = str(dt)[:10]
+        return f"{s[8:10]}/{s[5:7]}/{s[0:4]}"
+    except Exception:
+        return str(dt)
+
 def create_app():
     load_dotenv()
 
@@ -12,20 +35,10 @@ def create_app():
     from .db import init_app as init_db
     init_db(app)
 
-    # ---- Filtros Jinja usados nos templates ----
-    def fmt_int(v):
-        try:
-            return f"{int(round(float(v or 0))):,}".replace(",", ".")
-        except:
-            return "0"
-    def fmt_money(v):
-        try:
-            return f"R$ {float(v or 0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        except:
-            return "R$ 0,00"
-
-    app.jinja_env.filters["fmt_int"] = fmt_int
-    app.jinja_env.filters["fmt_money"] = fmt_money
+    # registra filtros
+    app.jinja_env.filters["fmt_int"] = _fmt_int
+    app.jinja_env.filters["fmt_money"] = _fmt_money
+    app.jinja_env.filters["fmt_date"] = _fmt_date
 
     # Blueprints
     from .routes.auth_routes import auth_bp
