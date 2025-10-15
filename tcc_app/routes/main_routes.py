@@ -153,7 +153,6 @@ def _kpis_semana(uid):
 def home():
     if 'usuario_id' not in session:
         return redirect(url_for('auth_bp.login'))
-    # leva direto ao novo dashboard
     return redirect(url_for('main_bp.dashboard'))
 
 # =============== CADASTRAR PRODUTO ===============
@@ -312,7 +311,6 @@ def dashboard():
     uid = session['usuario_id']
     email = session.get('usuario_email')
 
-    # categorias (para futuros filtros do gráfico, se quiser usar)
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
     cur.execute("SELECT DISTINCT categoria FROM produtos WHERE usuario_id=%s", (uid,))
     categorias_db = [r['categoria'] for r in cur.fetchall() if r['categoria']]

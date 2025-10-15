@@ -18,6 +18,7 @@ def menu():
 
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
 
+    # criação rápida
     if request.method == "POST" and request.form.get("acao") == "criar":
         nome = (request.form.get("nome") or "").strip()
         preco = request.form.get("preco") or "0"
@@ -32,12 +33,15 @@ def menu():
             except Exception as e:
                 conn.rollback(); flash("Falha ao criar item do menu."); print("menu:create ERR:", e)
 
+    # itens de menu
     cur.execute("SELECT id, nome, preco FROM menu_itens WHERE usuario_id=%s ORDER BY nome", (uid,))
     itens = cur.fetchall()
 
+    # produtos para montar receita
     cur.execute("SELECT id, nome, preco_venda, preco_custo FROM produtos WHERE usuario_id=%s ORDER BY nome", (uid,))
     produtos = cur.fetchall()
 
+    # receitas agrupadas por item
     receitas = {}
     if itens:
         ids = [i["id"] for i in itens]
@@ -167,21 +171,93 @@ def registrar_venda_menu():
     cur.close(); conn.close()
     return render_template("registrar_venda_menu.html", itens=itens)
 
-# ---------- STUBS AUXILIARES (mantidos) ----------
-@restaurant_bp.route("/ingredientes")
-def ingredientes():
-    if not _require_login():
-        return redirect(url_for("auth_bp.login"))
-    return render_template("generic_stub.html", titulo="Estoque (Ingredientes)", msg="Em breve: visão por ingredientes.")
-
+# ---------- LISTA DE COMPRAS / RELATÓRIOS ----------
 @restaurant_bp.route("/lista_compras")
 def lista_compras():
     if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    return render_template("generic_stub.html", titulo="Lista de Compras", msg="Em breve: lista automática baseada na previsão.")
+    uid = session["usuario_id"]
+
+    margem = int(request.args.get("margem") or 20)       # % segurança
+    horizonte = int(request.args.get("horizonte") or 7)  # dias
+
+    conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT p.id, p.nome, 'un' AS unidade, p.preco_custo AS custo,
+               p.quantidade AS qtd_inicial,
+               COALESCE(SUM(iv.quantidade),0) AS vendidos
+        FROM produtos p
+        LEFT JOIN itens_venda iv ON iv.produto_id = p.id
+        LEFT JOIN vendas v ON v.id = iv.venda_id AND v.usuario_id = %s
+        WHERE p.usuario_id = %s
+        GROUP BY p.id
+        ORDER BY p.nome
+    """, (uid, uid))
+    rows = cur.fetchall()
+
+    cur.execute("""
+        SELECT iv.produto_id, SUM(iv.quantidade) AS qtd_28d
+        FROM itens_venda iv
+        JOIN vendas v ON v.id = iv.venda_id
+        WHERE v.usuario_id = %s AND v.data >= (CURRENT_DATE - INTERVAL 28 DAY)
+        GROUP BY iv.produto_id
+    """, (uid,))
+    consumo_28 = {r["produto_id"]: int(r["qtd_28d"] or 0) for r in cur.fetchall()}
+
+    itens, total = [], 0.0
+    for r in rows:
+        estoque_atual = max(0, int(r["qtd_inicial"] or 0) - int(r["vendidos"] or 0))
+        media_dia = consumo_28.get(r["id"], 0) / 28.0
+        necessidade = max(0.0, media_dia * horizonte - estoque_atual)
+        necessidade *= (1 + margem/100.0)
+        sugerido = int(round(necessidade))
+
+        if sugerido > 0:
+            custo_est = sugerido * float(r["custo"] or 0.0)
+            total += custo_est
+            itens.append({
+                "nome": r["nome"],
+                "unidade": r["unidade"],
+                "sugerido": sugerido,
+                "custo": float(r["custo"] or 0.0),
+                "custo_estimado": round(custo_est, 2),
+            })
+
+    cur.close(); conn.close()
+    return render_template("lista_compras.html",
+                           itens=itens, total=round(total,2),
+                           margem=margem, horizonte=horizonte)
 
 @restaurant_bp.route("/relatorios")
 def relatorios():
     if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    return render_template("generic_stub.html", titulo="Relatórios (Ingredientes)", msg="Em breve: relatórios por ingrediente.")
+    uid = session["usuario_id"]
+
+    conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+
+    cur.execute("""
+        SELECT COUNT(DISTINCT v.id) AS total_vendas,
+               COALESCE(SUM(iv.quantidade * iv.preco_unitario),0) AS receita
+        FROM vendas v
+        LEFT JOIN itens_venda iv ON iv.venda_id = v.id
+        WHERE v.usuario_id = %s
+    """, (uid,))
+    kpi = cur.fetchone() or {"total_vendas":0, "receita":0.0}
+
+    cur.execute("""
+        SELECT p.nome, 'un' AS unidade, p.preco_custo AS custo,
+               COALESCE(SUM(iv.quantidade),0) AS uso_total,
+               COALESCE(SUM(iv.quantidade * p.preco_custo),0) AS custo_total
+        FROM produtos p
+        LEFT JOIN itens_venda iv ON iv.produto_id = p.id
+        LEFT JOIN vendas v ON v.id = iv.venda_id AND v.usuario_id = %s
+        WHERE p.usuario_id = %s
+          AND (v.data IS NULL OR v.data >= (CURRENT_DATE - INTERVAL 28 DAY))
+        GROUP BY p.id
+        ORDER BY p.nome
+    """, (uid, uid))
+    consumo = cur.fetchall()
+
+    cur.close(); conn.close()
+    return render_template("relatorios.html", kpi=kpi, consumo=consumo)

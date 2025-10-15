@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>RestauPredict • IA para Estoque e Vendas</title>
+  <title>PrevFood • IA para Estoque e Vendas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
@@ -11,8 +11,8 @@
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
     <div class="brand-row">
-      <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="Logo">
-      <span class="brand-name">RestauPredict</span>
+      <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+      <span class="brand-name">PrevFood</span>
     </div>
 
     <nav class="side-nav">
