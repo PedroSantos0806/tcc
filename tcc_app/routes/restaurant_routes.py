@@ -1,12 +1,11 @@
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from tcc_app.db import get_db_connection
 
 restaurant_bp = Blueprint("restaurant_bp", __name__)
 
 def _require_login():
-    if "usuario_id" not in session:
-        return False
-    return True
+    return "usuario_id" in session
 
 # ---------------------------------------
 # MENU – listar, criar e montar receita
@@ -26,19 +25,18 @@ def menu():
         preco = request.form.get("preco") or "0"
         if not nome:
             flash("Informe um nome para o item do menu.")
-            cur.close(); conn.close()
-            return redirect(url_for("restaurant_bp.menu"))
-        try:
-            cur.execute(
-                "INSERT INTO menu_itens (usuario_id, nome, preco) VALUES (%s,%s,%s)",
-                (uid, nome, float(preco or 0.0)),
-            )
-            conn.commit()
-            flash("Item do menu criado.")
-        except Exception as e:
-            conn.rollback()
-            flash("Falha ao criar item do menu.")
-            print("menu:create ERR:", e)
+        else:
+            try:
+                cur.execute(
+                    "INSERT INTO menu_itens (usuario_id, nome, preco) VALUES (%s,%s,%s)",
+                    (uid, nome, float(preco or 0.0)),
+                )
+                conn.commit()
+                flash("Item do menu criado.")
+            except Exception as e:
+                conn.rollback()
+                flash("Falha ao criar item do menu.")
+                print("menu:create ERR:", e)
 
     # dados para tela
     cur.execute("SELECT id, nome, preco FROM menu_itens WHERE usuario_id=%s ORDER BY nome", (uid,))
@@ -54,18 +52,29 @@ def menu():
     # receitas por item (mapa id_item -> lista de ingredientes)
     receitas = {}
     if itens:
-        ids = tuple([i["id"] for i in itens])
-        # work-around para 1 id só no IN
-        in_clause = "(%s)" if len(ids) == 1 else str(ids)
-        cur.execute(
-            f"""
-            SELECT r.id, r.menu_item_id, r.produto_id, r.qtd_por_item, p.nome AS produto_nome
-            FROM receitas r
-            JOIN produtos p ON p.id = r.produto_id
-            WHERE r.menu_item_id IN {in_clause}
-            """,
-            ids if len(ids) == 1 else None,
-        )
+        ids = tuple(i["id"] for i in itens)
+        # parametrização segura para 1 ou mais ids
+        if len(ids) == 1:
+            cur.execute(
+                """
+                SELECT r.id, r.menu_item_id, r.produto_id, r.qtd_por_item, p.nome AS produto_nome
+                FROM receitas r
+                JOIN produtos p ON p.id = r.produto_id
+                WHERE r.menu_item_id IN (%s)
+                """,
+                ids,
+            )
+        else:
+            placeholders = ",".join(["%s"] * len(ids))
+            cur.execute(
+                f"""
+                SELECT r.id, r.menu_item_id, r.produto_id, r.qtd_por_item, p.nome AS produto_nome
+                FROM receitas r
+                JOIN produtos p ON p.id = r.produto_id
+                WHERE r.menu_item_id IN ({placeholders})
+                """,
+                ids,
+            )
         for row in cur.fetchall():
             receitas.setdefault(row["menu_item_id"], []).append(row)
 
@@ -166,15 +175,15 @@ def registrar_venda_menu():
 
     if request.method == "POST":
         menu_item_id = request.form.get("menu_item_id")
-        qtd = int(request.form.get("quantidade") or 0)
+        qtd = int(float(request.form.get("quantidade") or 0))
         data_venda = request.form.get("data_venda")
 
-        if not (menu_item_id and qtd and data_venda):
-            flash("Preencha item, quantidade e data.")
+        if not (menu_item_id and qtd > 0 and data_venda):
+            flash("Preencha item, quantidade (>0) e data.")
             cur.close(); conn.close()
             return redirect(url_for("restaurant_bp.registrar_venda_menu"))
 
-        # pega receita do item
+        # pega receita do item pertencente ao usuário
         cur.execute(
             """
             SELECT r.produto_id, r.qtd_por_item, p.preco_venda
@@ -199,7 +208,7 @@ def registrar_venda_menu():
             # expande receita -> itens_venda por produto
             for r in receita:
                 produto_id = r["produto_id"]
-                qtd_total = float(r["qtd_por_item"]) * qtd
+                qtd_total = int(round(float(r["qtd_por_item"]) * qtd))  # garante INT
                 preco_unit = float(r["preco_venda"])
                 cur.execute(
                     """
@@ -226,24 +235,153 @@ def registrar_venda_menu():
     cur.close(); conn.close()
     return render_template("registrar_venda_menu.html", itens=itens)
 
-# ------------------------
-# Stubs para demais links
-# ------------------------
-@restaurant_bp.route("/ingredientes")
+# ---------------------------------------
+# INGREDIENTES – CRUD simples + listagem
+# ---------------------------------------
+@restaurant_bp.route("/ingredientes", methods=["GET", "POST"])
 def ingredientes():
     if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    # Você pode substituir por sua página real de ingredientes
-    return render_template("generic_stub.html", titulo="Estoque (Ingredientes)", msg="Em breve: visão por ingredientes.")
+    uid = session["usuario_id"]
 
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+
+    if request.method == "POST":
+        f = request.form
+        try:
+            cur.execute(
+                """
+                INSERT INTO ingredientes
+                (usuario_id, nome, unidade, custo, perecivel, estoque_atual, estoque_minimo)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    uid,
+                    f.get("nome"),
+                    f.get("unidade") or None,
+                    float(f.get("custo") or 0),
+                    int(f.get("perecivel") or 0),
+                    int(float(f.get("estoque_atual") or 0)),
+                    int(float(f.get("estoque_minimo") or 0)),
+                ),
+            )
+            conn.commit()
+            flash("Ingrediente salvo!")
+        except Exception as e:
+            conn.rollback()
+            flash("Erro ao salvar ingrediente.")
+            print("ingredientes:insert ERR:", e)
+
+    cur.execute(
+        """
+        SELECT id, nome, unidade, custo, perecivel, estoque_atual, estoque_minimo
+        FROM ingredientes
+        WHERE usuario_id=%s
+        ORDER BY nome
+        """,
+        (uid,),
+    )
+    lista = cur.fetchall()
+    cur.close(); conn.close()
+    return render_template("ingredientes.html", ingredientes=lista)
+
+# -------------------------------------------------
+# LISTA DE COMPRAS – sugestão simples e funcional
+# -------------------------------------------------
 @restaurant_bp.route("/lista_compras")
 def lista_compras():
     if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    return render_template("generic_stub.html", titulo="Lista de Compras", msg="Em breve: lista automática baseada na previsão.")
+    uid = session["usuario_id"]
 
+    margem = max(0, min(100, int(request.args.get("margem", 20))))
+    horizonte = max(1, min(30, int(request.args.get("horizonte", 7))))
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # pega ingredientes atuais
+    cur.execute(
+        """
+        SELECT id, nome, unidade, custo, estoque_atual, estoque_minimo
+        FROM ingredientes
+        WHERE usuario_id=%s
+        ORDER BY nome
+        """,
+        (uid,),
+    )
+    ing = cur.fetchall()
+
+    # Heurística simples: alvo = estoque_minimo * (horizonte/7) * (1+margem)
+    fator = (horizonte / 7.0) * (1.0 + margem / 100.0)
+    itens, total = [], 0.0
+    for i in ing:
+        alvo = int(round((i["estoque_minimo"] or 0) * fator))
+        sugerido = max(0, alvo - int(i["estoque_atual"] or 0))
+        if sugerido > 0:
+            custo_estimado = float(i["custo"] or 0) * sugerido
+            total += custo_estimado
+            itens.append({
+                "nome": i["nome"],
+                "unidade": i["unidade"],
+                "sugerido": sugerido,
+                "custo": i["custo"],
+                "custo_estimado": custo_estimado,
+            })
+
+    cur.close(); conn.close()
+    return render_template("lista_compras.html", itens=itens, total=total, margem=margem, horizonte=horizonte)
+
+# -------------------------------------------------
+# RELATÓRIOS (Ingredientes) – KPIs e consumo básico
+# -------------------------------------------------
 @restaurant_bp.route("/relatorios")
 def relatorios():
     if not _require_login():
         return redirect(url_for("auth_bp.login"))
-    return render_template("generic_stub.html", titulo="Relatórios (Ingredientes)", msg="Em breve: relatórios por ingrediente.")
+    uid = session["usuario_id"]
+
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+
+    # KPIs de vendas (últimas 4 semanas)
+    dt_ini = (datetime.utcnow() - timedelta(days=28)).strftime("%Y-%m-%d 00:00:00")
+    cur.execute(
+        """
+        SELECT COUNT(DISTINCT v.id) AS total_vendas,
+               COALESCE(SUM(iv.quantidade * iv.preco_unitario),0) AS receita
+        FROM vendas v
+        LEFT JOIN itens_venda iv ON iv.venda_id = v.id
+        WHERE v.usuario_id=%s AND v.data >= %s
+        """,
+        (uid, dt_ini),
+    )
+    kpi = cur.fetchone() or {"total_vendas": 0, "receita": 0.0}
+
+    # Consumo por ingrediente (estimado):
+    # sem vínculo direto produto->ingrediente no seu schema atual, usamos proxy:
+    # se estoque_atual < estoque_minimo, consideramos uso_total = (estoque_minimo - estoque_atual) + 10% buffer
+    cur.execute(
+        """
+        SELECT nome, unidade, custo, estoque_atual, estoque_minimo
+        FROM ingredientes
+        WHERE usuario_id=%s
+        ORDER BY nome
+        """,
+        (uid,),
+    )
+    consumo = []
+    for row in cur.fetchall():
+        falta = max(0, (row["estoque_minimo"] or 0) - (row["estoque_atual"] or 0))
+        uso = int(round(falta * 1.1))
+        consumo.append({
+            "nome": row["nome"],
+            "unidade": row["unidade"],
+            "uso_total": uso,
+            "custo": row["custo"],
+            "custo_total": float(row["custo"] or 0) * uso
+        })
+
+    cur.close(); conn.close()
+    return render_template("relatorios.html", kpi=kpi, consumo=consumo)

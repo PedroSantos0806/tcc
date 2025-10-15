@@ -27,14 +27,16 @@ def obter_estoque_com_vendas(usuario_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT p.*, 
-            COALESCE(p.quantidade - (
-                SELECT SUM(v.quantidade) FROM vendas v
-                WHERE v.produto_id = p.id
-            ), p.quantidade) AS quantidade_atual
+        SELECT p.*,
+               GREATEST(p.quantidade - COALESCE((
+                   SELECT SUM(iv.quantidade)
+                   FROM itens_venda iv
+                   JOIN vendas v ON v.id = iv.venda_id
+                   WHERE iv.produto_id = p.id AND v.usuario_id = %s
+               ), 0), 0) AS quantidade_atual
         FROM produtos p
         WHERE p.usuario_id = %s
-    """, (usuario_id,))
+    """, (usuario_id, usuario_id))
     produtos = cursor.fetchall()
     cursor.close()
     return produtos

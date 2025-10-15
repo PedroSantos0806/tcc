@@ -3,8 +3,10 @@
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
   // Visualizar/ocultar senha
-  document.querySelectorAll("#toggleSenha").forEach(btn => {
-    const input = btn?.parentElement?.querySelector("input[type='password'], input[type='text']");
+  document.querySelectorAll("#toggleSenha").forEach((btn) => {
+    const input = btn?.parentElement?.querySelector(
+      "input[type='password'], input[type='text']"
+    );
     if (!input) return;
     btn.addEventListener("click", () => {
       const isPass = input.type === "password";
@@ -24,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Auto-hide dos flashes
   setTimeout(() => {
-    document.querySelectorAll(".flash")?.forEach(f => (f.style.display = "none"));
+    document.querySelectorAll(".flash")?.forEach((f) => (f.style.display = "none"));
   }, 6000);
 });
 
@@ -81,27 +83,52 @@ function setupProdutoDinamico() {
 
   function popularSelect(select, valores) {
     select.innerHTML = "";
-    valores.forEach(v => {
+    valores.forEach((v) => {
       const o = document.createElement("option");
-      o.value = v; o.textContent = v;
+      o.value = v;
+      o.textContent = v;
       select.appendChild(o);
     });
   }
 
   cat.addEventListener("change", () => {
     const v = cat.value;
-    if (!v) { gSub.style.display = "none"; gTam.style.display = "none"; return; }
+    if (!v) {
+      gSub.style.display = "none";
+      gTam.style.display = "none";
+      return;
+    }
     const cfg = opcoes[v];
 
     if (v === "Vestuário") {
-      if (cfg.subcategorias) { popularSelect(sub, cfg.subcategorias); gSub.style.display = "block"; } else { gSub.style.display = "none"; }
+      if (cfg.subcategorias) {
+        popularSelect(sub, cfg.subcategorias);
+        gSub.style.display = "block";
+      } else {
+        gSub.style.display = "none";
+      }
       gTam.style.display = "none";
-      sub.onchange = () => { if (cfg.tamanhos) { popularSelect(tam, cfg.tamanhos); gTam.style.display = "block"; } };
+      sub.onchange = () => {
+        if (cfg.tamanhos) {
+          popularSelect(tam, cfg.tamanhos);
+          gTam.style.display = "block";
+        }
+      };
     } else if (v === "Calçados") {
       gSub.style.display = "none";
-      if (cfg.tamanhos) { popularSelect(tam, cfg.tamanhos); gTam.style.display = "block"; } else { gTam.style.display = "none"; }
+      if (cfg.tamanhos) {
+        popularSelect(tam, cfg.tamanhos);
+        gTam.style.display = "block";
+      } else {
+        gTam.style.display = "none";
+      }
     } else if (v === "Tecnologia") {
-      if (cfg.subcategorias) { popularSelect(sub, cfg.subcategorias); gSub.style.display = "block"; } else { gSub.style.display = "none"; }
+      if (cfg.subcategorias) {
+        popularSelect(sub, cfg.subcategorias);
+        gSub.style.display = "block";
+      } else {
+        gSub.style.display = "none";
+      }
       gTam.style.display = "none";
     }
   });
@@ -114,7 +141,7 @@ function initFolderMenus() {
   const folders = document.querySelectorAll(".folder");
 
   function closeAll(except = null) {
-    folders.forEach(f => {
+    folders.forEach((f) => {
       if (f !== except) {
         f.classList.remove("open");
         const btn = f.querySelector(".folder-btn");
@@ -123,7 +150,7 @@ function initFolderMenus() {
     });
   }
 
-  folders.forEach(folder => {
+  folders.forEach((folder) => {
     const btn = folder.querySelector(".folder-btn");
     const menu = folder.querySelector(".folder-menu");
     if (!btn || !menu) return;
