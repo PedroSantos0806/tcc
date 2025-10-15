@@ -1,85 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
 
-<section class="hero">
-  <div class="hero-text">
-    <h1>Controle, Análise e <strong>Previsão</strong></h1>
-    <p>Gestão de estoque, dashboard financeiro e previsão de vendas com IA — tudo em um só lugar.</p>
-    <div class="hero-cta">
-      <a class="btn primary" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
-      <a class="btn" href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
-      <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Ver Estoque</a>
-    </div>
-  </div>
-</section>
-
-<!-- Atalhos para as novas áreas do app -->
-<div class="cards-row" style="margin-top:18px;">
-  <a class="card" href="{{ url_for('restaurant_bp.menu') }}">
-    <h3>Menu</h3>
-    <p>Gerencie itens e receitas</p>
-  </a>
-
-  <a class="card" href="{{ url_for('restaurant_bp.ingredientes') }}">
-    <h3>Ingredientes</h3>
-    <p>Níveis, custo e alertas</p>
-  </a>
-
-  <a class="card" href="{{ url_for('restaurant_bp.registrar_venda_menu') }}">
-    <h3>Registrar Venda (Menu)</h3>
-    <p>Debita ingredientes automaticamente</p>
-  </a>
-
-  <a class="card" href="{{ url_for('restaurant_bp.lista_compras') }}">
-    <h3>Lista de Compras</h3>
-    <p>Quantidades sugeridas por previsão</p>
-  </a>
-
-  <a class="card" href="{{ url_for('restaurant_bp.relatorios') }}">
-    <h3>Relatórios</h3>
-    <p>Uso, custo e margem</p>
-  </a>
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <p class="muted">Visão geral do seu restaurante</p>
 </div>
 
-<section class="carousel" data-carousel>
-  <div class="slides">
-    <div class="slide">
-      <div class="slide-card">
-        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Previsão de vendas">
-        <div class="slide-info">
-          <h2>Previsão de Vendas</h2>
-          <p>Modelo leve com tendência + sazonalidade por dia da semana e média móvel, para horizonte de 14 dias.</p>
-          <a class="btn primary" href="{{ url_for('main_bp.ver_previsao') }}">Explorar Previsões</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="slide">
-      <div class="slide-card">
-        <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="Controle de Estoque">
-        <div class="slide-info">
-          <h2>Controle de Estoque</h2>
-          <p>Saldo em tempo real (inicial − vendidos), alerta de baixo estoque e visão por categorias.</p>
-          <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Abrir Estoque</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="slide">
-      <div class="slide-card">
-        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Dashboard Financeiro">
-        <div class="slide-info">
-          <h2>Dashboard Financeiro</h2>
-          <p>Receita, custo e lucro por produto com gráficos claros e filtros.</p>
-          <a class="btn" href="{{ url_for('main_bp.dashboard') }}">Ver Dashboard</a>
-        </div>
-      </div>
-    </div>
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-title">Vendas desta Semana</div>
+    <div class="kpi-value">{{ (kpis.semana_vendas if kpis else 0)|int }}</div>
   </div>
+  <div class="kpi">
+    <div class="kpi-title">Receita da Semana</div>
+    <div class="kpi-value">R$ {{ (kpis.semana_receita if kpis else 0)|round(2) }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-title">Itens com Estoque Baixo</div>
+    <div class="kpi-value">{{ (kpis.estoque_baixo if kpis else 0)|int }}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-title">Itens em Falta</div>
+    <div class="kpi-value">{{ (kpis.estoque_zero if kpis else 0)|int }}</div>
+  </div>
+</div>
 
-  <div class="dots" aria-label="Slides"></div>
-  <button class="nav prev" aria-label="Slide anterior">‹</button>
-  <button class="nav next" aria-label="Próximo slide">›</button>
-</section>
+<div class="welcome-banner">
+  <div class="wb-title">Bem-vindo ao RestauPredict!</div>
+  <div class="wb-text">Comece configurando seu menu e ingredientes para começar a rastrear seu estoque e gerar predições inteligentes.</div>
+  <div class="wb-actions">
+    <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">Configurar Menu</a>
+    <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Gerenciar Estoque</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h3>Predições da Próxima Semana</h3>
+    <div class="panel-empty">
+      <div class="emoji">📦</div>
+      <p>Configure seus itens do menu para ver predições</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Alertas de Estoque</h3>
+    <div class="panel-empty">
+      <div class="emoji">⚠️</div>
+      <p>Adicione ingredientes para monitorar alertas</p>
+    </div>
+  </section>
+</div>
 
 {% endblock %}

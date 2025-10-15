@@ -2,73 +2,49 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Previsão de Vendas com IA</title>
+  <title>RestauPredict • IA para Estoque e Vendas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand">Previsão de Vendas com IA</div>
+<body class="app">
+  {% if session.get('usuario_id') %}
+  <aside class="sidebar">
+    <div class="brand-row">
+      <span class="brand-logo">🍔</span>
+      <span class="brand-name">RestauPredict</span>
+    </div>
 
-    <nav class="nav nav-folders" role="navigation" aria-label="Menu principal">
-      {% if session.get('usuario_id') %}
-
-        <!-- Pasta: Início -->
-        <div class="folder" data-folder="inicio">
-          <button class="folder-btn" type="button" aria-expanded="false">Início</button>
-          <div class="folder-menu" role="menu">
-            <a role="menuitem" href="{{ url_for('main_bp.home') }}">Home</a>
-            <a role="menuitem" href="{{ url_for('auth_bp.logout') }}">Sair</a>
-          </div>
-        </div>
-
-        <!-- Pasta: Relatórios -->
-        <div class="folder" data-folder="relatorios">
-          <button class="folder-btn" type="button" aria-expanded="false">Relatórios</button>
-          <div class="folder-menu" role="menu">
-            <a role="menuitem" href="{{ url_for('main_bp.dashboard') }}">Dashboard</a>
-            <a role="menuitem" href="{{ url_for('restaurant_bp.relatorios') }}">Relatórios (Ingredientes)</a>
-          </div>
-        </div>
-
-        <!-- Pasta: Estoque -->
-        <div class="folder" data-folder="estoque">
-          <button class="folder-btn" type="button" aria-expanded="false">Estoque</button>
-          <div class="folder-menu" role="menu">
-            <a role="menuitem" href="{{ url_for('main_bp.ver_estoque') }}">Estoque por Produto</a>
-            <a role="menuitem" href="{{ url_for('restaurant_bp.ingredientes') }}">Estoque (Ingredientes)</a>
-            <a role="menuitem" href="{{ url_for('restaurant_bp.lista_compras') }}">Lista de Compras</a>
-          </div>
-        </div>
-
-        <!-- Pasta: Restaurante -->
-        <div class="folder" data-folder="restaurante">
-          <button class="folder-btn" type="button" aria-expanded="false">Restaurante</button>
-          <div class="folder-menu" role="menu">
-            <a role="menuitem" href="{{ url_for('restaurant_bp.menu') }}">Menu</a>
-            <a role="menuitem" href="{{ url_for('restaurant_bp.registrar_venda_menu') }}">Registrar Venda (Menu)</a>
-            <a role="menuitem" href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar Produto</a>
-            <a role="menuitem" href="{{ url_for('main_bp.cadastrar_venda') }}">Registrar Venda (Produtos)</a>
-          </div>
-        </div>
-
-        <!-- Pasta: Previsão -->
-        <div class="folder" data-folder="previsao">
-          <button class="folder-btn" type="button" aria-expanded="false">Previsão</button>
-          <div class="folder-menu" role="menu">
-            <a role="menuitem" href="{{ url_for('main_bp.ver_previsao') }}">Ver Previsão</a>
-          </div>
-        </div>
-
-      {% else %}
-        <a href="{{ url_for('auth_bp.login') }}">Login</a>
-        <a href="{{ url_for('auth_bp.cadastro') }}">Criar Conta</a>
-      {% endif %}
+    <nav class="side-nav">
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.home' else '' }}" href="{{ url_for('main_bp.home') }}">
+        <span>Dashboard</span>
+      </a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}">
+        <span>Menu</span>
+      </a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}">
+        <span>Estoque</span>
+      </a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.lista_compras' else '' }}" href="{{ url_for('restaurant_bp.lista_compras') }}">
+        <span>Lista de Compras</span>
+      </a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}">
+        <span>Relatórios</span>
+      </a>
     </nav>
-  </header>
 
-  <main class="content">
+    <div class="side-user">
+      <div class="user-avatar">👤</div>
+      <div class="user-meta">
+        <div class="user-name">{{ session.get('usuario_nome','Usuário') }}</div>
+        <div class="user-email">{{ session.get('usuario_email','') }}</div>
+      </div>
+      <a class="side-logout" href="{{ url_for('auth_bp.logout') }}">Sair</a>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="main">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="flash">
@@ -76,11 +52,8 @@
         </div>
       {% endif %}
     {% endwith %}
+
     {% block content %}{% endblock %}
   </main>
-
-  <footer>
-    <p>&copy; 2025 - Previsão de Demanda com IA</p>
-  </footer>
 </body>
 </html>
