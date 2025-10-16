@@ -83,7 +83,6 @@ def get_lang():
     try:
         return session.get("lang", "pt")
     except Exception:
-        # em boot/testes sem contexto
         return "pt"
 
 def t(key: str) -> str:
@@ -91,7 +90,7 @@ def t(key: str) -> str:
     return I18N.get(lang, I18N["pt"]).get(key, key)
 
 def inject_i18n(app):
-    @app.app_context_processor
+    @app.context_processor   # <<--- CORRETO AQUI
     def _ctx():
-        # não chame get_lang() aqui!
+        # devolve as funções para o template (não executa nada no boot)
         return {"t": t, "lang": get_lang}
