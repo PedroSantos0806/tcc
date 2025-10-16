@@ -1,31 +1,107 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="login-wrap">
-  <div></div>
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
-      <div class="login-title">Entrar</div>
+<section class="auth-hero">
+  <div class="auth-hero-bg">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="auth-grid">
+    <!-- Coluna esquerda: Card de login (glass) -->
+    <div class="login-card glass" role="form" aria-labelledby="loginTitle">
+      <div class="login-logo">
+        <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+        <div class="login-title" id="loginTitle">Entrar</div>
+      </div>
+      <p class="login-sub">Acesse sua conta para gerenciar estoque, vendas e previsões com IA.</p>
+
+      {% if erro %}
+        <div class="alert error" role="alert">{{ erro }}</div>
+      {% endif %}
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert info" role="status">
+            {% for m in messages %}<div>{{ m }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on" novalidate>
+        <label for="email">E-mail</label>
+        <input class="input" id="email" name="email" type="email" required autofocus placeholder="voce@empresa.com">
+
+        <label for="senha">Senha</label>
+        <div class="password-row">
+          <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
+          <button type="button" id="toggleSenha" class="btn-eye" aria-label="Mostrar/ocultar senha">👁️</button>
+        </div>
+
+        <div class="login-ops">
+          <label class="remember">
+            <input type="checkbox" name="remember" value="1"> Lembrar de mim
+          </label>
+          <a class="link" href="{{ url_for('auth_bp.esqueci_senha') }}">Esqueceu a senha?</a>
+        </div>
+
+        <button class="btn primary block" type="submit" id="btnEntrar">Entrar</button>
+
+        <div class="divider"><span>ou</span></div>
+
+        <a class="btn ghost block" href="{{ url_for('auth_bp.cadastro') }}">Criar conta gratuita</a>
+      </form>
+
+      <div class="auth-badge-row" aria-label="Confiado por negócios de todos os tamanhos">
+        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="" class="badge-icon">
+        <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="" class="badge-icon">
+        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="" class="badge-icon">
+        <span class="badge-text">Relatórios, Estoque e Previsão com IA</span>
+      </div>
     </div>
-    <div class="login-sub">Use seu e-mail e senha para acessar o PrevFood.</div>
 
-    <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on">
-      <label for="email">E-mail</label>
-      <input class="input" id="email" name="email" type="email" required autofocus>
+    <!-- Coluna direita: Mensagem de valor + ilustração -->
+    <div class="auth-copy">
+      <h1 class="hero-title">
+        Previsão de Demanda <span class="grad">de verdade</span> para o seu negócio
+      </h1>
+      <p class="hero-sub">
+        Reduza rupturas, evite excesso de estoque e aumente sua margem com insights automáticos.
+      </p>
 
-      <label for="senha">Senha</label>
-      <div style="display:flex; gap:6px;">
-        <input class="input" id="senha" name="senha" type="password" required style="flex:1">
-        <button type="button" id="toggleSenha" class="btn" style="padding:0 12px;">👁️</button>
+      <ul class="auth-bullets">
+        <li>📈 <b>Previsões diárias</b> com sazonalidade e tendência.</li>
+        <li>🧾 <b>Lista de compras inteligente</b> baseada no consumo real.</li>
+        <li>📦 <b>Estoque em tempo real</b> por produto e categoria.</li>
+        <li>🔒 <b>Segurança</b> e acesso por usuário.</li>
+      </ul>
+
+      <div class="auth-cta">
+        <a class="btn primary" href="{{ url_for('auth_bp.cadastro') }}">Começar agora</a>
+        <a class="btn link" href="{{ url_for('main_bp.dashboard') if session.get('usuario_id') else url_for('auth_bp.login') }}">Ver demo</a>
       </div>
 
-      <button class="btn primary block" type="submit">Entrar</button>
-    </form>
-
-    <div style="display:flex; justify-content:space-between; margin-top:10px;">
-      <a href="{{ url_for('auth_bp.esqueci_senha') }}">Esqueceu a senha?</a>
-      <a href="{{ url_for('auth_bp.cadastro') }}">Criar Conta</a>
+      <div class="auth-illustration">
+        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Ilustração de Dashboard">
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<script>
+  (function () {
+    const btn = document.getElementById('toggleSenha');
+    const input = document.getElementById('senha');
+    const submit = document.getElementById('btnEntrar');
+
+    btn?.addEventListener('click', () => {
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', input.type === 'text');
+    });
+
+    document.querySelector('form')?.addEventListener('submit', () => {
+      submit.disabled = true;
+      submit.textContent = 'Entrando...';
+    });
+  })();
+</script>
 {% endblock %}

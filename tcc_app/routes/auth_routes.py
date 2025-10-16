@@ -32,6 +32,7 @@ def login():
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip()
         senha = (request.form.get('senha') or '').strip()
+        remember = request.form.get('remember') == '1'  # <-- novo
 
         if not email or not senha:
             erro = 'Preencha todos os campos.'
@@ -48,24 +49,28 @@ def login():
                 # Se banco cair, segue pro CSV sem encerrar
                 print("Erro DB login:", e)
 
+            def _do_login(sess_id, nome, email_):
+                session.clear()
+                session['usuario_id'] = sess_id
+                session['usuario_nome'] = nome
+                session['usuario_email'] = email_
+                # lembrar-me
+                if remember:
+                    session.permanent = True
+                return redirect(url_for('main_bp.home'))
+
             if usuario_db:
-                # Usuário existe no DB -> valida senha obrigatoriamente no DB
                 if check_password_hash(usuario_db['senha'], senha):
-                    session.clear()
-                    session['usuario_id'] = usuario_db['id']
-                    session['usuario_nome'] = usuario_db['nome']
-                    session['usuario_email'] = usuario_db['email']
-                    return redirect(url_for('main_bp.home'))
+                    return _do_login(usuario_db['id'], usuario_db['nome'], usuario_db['email'])
                 else:
                     erro = 'E-mail ou senha incorretos.'
             else:
-                # 2) Se NÃO existe no DB (ou DB indisponível), tenta CSV
+                # 2) CSV fallback
                 row = _find_user_in_csv(email)
                 if row:
                     raw = row.get('senha', '') or ''
                     ok = False
                     try:
-                        # Se estiver em formato hash (werkzeug), valida; senão, compara em texto puro
                         if raw.startswith('pbkdf2:') or raw.startswith('scrypt:'):
                             ok = check_password_hash(raw, senha)
                         else:
@@ -74,17 +79,12 @@ def login():
                         ok = (raw == senha)
 
                     if ok:
-                        # Sessão com "id" do CSV se houver; senão um id fixo de demo
-                        session.clear()
                         try:
-                            session['usuario_id'] = int(row.get('id') or 0) or 999999
+                            uid = int(row.get('id') or 0) or 999999
                         except Exception:
-                            session['usuario_id'] = 999999
-                        session['usuario_nome'] = row.get('nome') or 'Usuário'
-                        session['usuario_email'] = row.get('email') or email
-                        return redirect(url_for('main_bp.home'))
+                            uid = 999999
+                        return _do_login(uid, row.get('nome') or 'Usuário', row.get('email') or email)
 
-                # se chegou aqui, nem DB nem CSV validaram
                 if not erro:
                     erro = 'E-mail ou senha incorretos.'
 

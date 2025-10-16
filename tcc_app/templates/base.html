@@ -11,7 +11,7 @@
   <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/Logo.jpg') }}">
   <meta name="theme-color" content="#ff6a3d">
 </head>
-<body class="app">
+<body class="{% if session.get('usuario_id') %}app{% endif %}">
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
     <div class="brand-row">
@@ -22,9 +22,9 @@
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>Dashboard</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>Menu</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>Estoque</span></a>
-      <!-- aponta para a rota FUNCIONAL nova -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>Lista de Compras</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}"><span>Relatórios</span></a>
+      <!-- Corrigido para a rota existente em main_bp -->
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.relatorios' else '' }}" href="{{ url_for('main_bp.relatorios') }}"><span>Relatórios</span></a>
       <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>Sair</span></a>
     </nav>
 
@@ -38,7 +38,7 @@
   </aside>
   {% endif %}
 
-  <main class="main">
+  <main class="main{% if not session.get('usuario_id') %} main-auth{% endif %}">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="flash">
