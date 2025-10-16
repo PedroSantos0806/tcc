@@ -263,3 +263,14 @@ button:hover{ background:var(--brand-2); }
   .app{ grid-template-columns:1fr; }
   .sidebar{ position:sticky; top:0; z-index:5; }
 }
+/* === Language switch (header/login) === */
+.lang-top{
+  position: fixed; top: 14px; right: 16px; z-index: 10;
+  display:flex; gap:8px; background:rgba(255,255,255,0.75); backdrop-filter: blur(6px);
+  border:1px solid var(--border); padding:6px 8px; border-radius: 999px;
+}
+.lang-top a, .lang-switch a{
+  font-size:12px; font-weight:800; color:#334155; text-decoration:none; padding:4px 8px; border-radius:999px;
+}
+.lang-top a.active, .lang-switch a.active{ background:#111827; color:#fff; }
+.lang-switch{ display:flex; gap:6px; }

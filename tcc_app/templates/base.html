@@ -6,25 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-
-  <!-- Favicon usando o mesmo Logo.jpg -->
   <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/Logo.jpg') }}">
   <meta name="theme-color" content="#ff6a3d">
 </head>
 <body class="{% if session.get('usuario_id') %}app{% endif %}">
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
-    <div class="brand-row">
+    <div class="brand-row" style="justify-content:space-between; align-items:center;">
       <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+      <div class="lang-switch">
+        <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" class="{{ 'active' if lang=='pt' }}">PT</a>
+        <a href="{{ url_for('auth_bp.set_lang', code='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
+        <a href="{{ url_for('auth_bp.set_lang', code='es') }}" class="{{ 'active' if lang=='es' }}">ES</a>
+      </div>
     </div>
 
     <nav class="side-nav">
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>Dashboard</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>Menu</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>Estoque</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>Lista de Compras</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}"><span>Relatórios</span></a>
-      <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>Sair</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>{{ t('Dashboard') }}</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>{{ t('Menu') }}</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>{{ t('Stock') }}</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>{{ t('Shopping List') }}</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.relatorios' else '' }}" href="{{ url_for('main_bp.relatorios') }}"><span>{{ t('Reports') }}</span></a>
+      <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>{{ t('Logout') }}</span></a>
     </nav>
 
     <div class="side-user">
@@ -47,6 +50,14 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
+
+    {% if not session.get('usuario_id') %}
+    <div class="lang-top">
+      <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" class="{{ 'active' if lang=='pt' }}">PT</a>
+      <a href="{{ url_for('auth_bp.set_lang', code='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
+      <a href="{{ url_for('auth_bp.set_lang', code='es') }}" class="{{ 'active' if lang=='es' }}">ES</a>
+    </div>
+    {% endif %}
   </main>
 </body>
 </html>

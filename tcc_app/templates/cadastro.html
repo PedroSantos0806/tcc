@@ -1,32 +1,95 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="login-page">
-  <div class="login-container">
-    <h2>Criar Conta</h2>
+<section class="auth-hero">
+  <div class="auth-hero-bg">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-grid"></div>
+  </div>
 
-    {% if erro %}
-      <div class="erro-box">{{ erro }}</div>
-    {% endif %}
-
-    <form method="POST" class="form-box" autocomplete="off">
-      <label for="nome">Nome</label>
-      <input id="nome" name="nome" type="text" required>
-
-      <label for="email">E-mail</label>
-      <input id="email" name="email" type="email" required>
-
-      <label for="senha">Senha</label>
-      <div class="senha-box">
-        <input id="senha" name="senha" type="password" required minlength="6">
-        <button type="button" id="toggleSenha" class="toggle-senha" aria-label="Alternar visualização da senha">👁️</button>
+  <div class="auth-grid">
+    <div class="login-card glass" role="form" aria-labelledby="signupTitle">
+      <div class="login-logo">
+        <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+        <div class="login-title" id="signupTitle">{{ t('Sign up') }}</div>
       </div>
+      <p class="login-sub">Crie sua conta e personalize o app para o seu segmento.</p>
 
-      <button type="submit">Criar Conta</button>
-    </form>
+      {% if erro %}
+        <div class="alert error" role="alert">{{ erro }}</div>
+      {% endif %}
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert info" role="status">
+            {% for m in messages %}<div>{{ m }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
 
-    <div class="login-link">
-      Já tem conta? <a href="{{ url_for('auth_bp.login') }}">Entrar</a>
+      <form method="POST" action="{{ url_for('auth_bp.cadastro') }}" class="form-box" autocomplete="on" novalidate>
+        <label for="nome">{{ t('Name') }}</label>
+        <input class="input" id="nome" name="nome" type="text" required placeholder="Seu nome">
+
+        <label for="email">{{ t('Email') }}</label>
+        <input class="input" id="email" name="email" type="email" required placeholder="voce@empresa.com">
+
+        <label for="senha">{{ t('Password') }}</label>
+        <div class="password-row">
+          <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
+          <button type="button" id="toggleSenha" class="btn-eye" aria-label="Mostrar/ocultar senha">👁️</button>
+        </div>
+
+        <label for="biz_type">{{ t('Business Type') }}</label>
+        <select id="biz_type" name="biz_type" required>
+          <option value="restaurant">{{ t('Restaurant') }}</option>
+          <option value="retail">{{ t('Retail') }}</option>
+          <option value="bakery">{{ t('Bakery') }}</option>
+          <option value="pharmacy">{{ t('Pharmacy') }}</option>
+          <option value="market">{{ t('Market') }}</option>
+          <option value="other" selected>{{ t('Other') }}</option>
+        </select>
+
+        <label for="lang">{{ t('Preferred Language') }}</label>
+        <select id="lang" name="lang">
+          <option value="pt" {{ 'selected' if lang=='pt' }}>Português (Brasil)</option>
+          <option value="en" {{ 'selected' if lang=='en' }}>English</option>
+          <option value="es" {{ 'selected' if lang=='es' }}>Español</option>
+        </select>
+
+        <button class="btn primary block" type="submit">{{ t('Sign up') }}</button>
+      </form>
+
+      <div style="margin-top:10px; text-align:center;">
+        <span class="muted">{{ t('Have account?') }}</span>
+        <a class="link" href="{{ url_for('auth_bp.login') }}"> {{ t('Sign in now') }}</a>
+      </div>
+    </div>
+
+    <div class="auth-copy">
+      <h1 class="hero-title">
+        {{ t('Real demand forecasting') }} <span class="grad">PrevFood</span>
+      </h1>
+      <p class="hero-sub">
+        Onboarding rápido para adequar o produto ao seu tipo de negócio.
+      </p>
+      <div class="auth-illustration">
+        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Ilustração">
+      </div>
     </div>
   </div>
-</div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('toggleSenha');
+    const input = document.getElementById('senha');
+    if (btn && input) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', input.type === 'text');
+      });
+    }
+  });
+</script>
 {% endblock %}

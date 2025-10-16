@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="main" style="max-width:820px; margin:40px auto;">
+  <div class="panel">
+    <h1 class="page-title" style="margin-bottom:8px;">{{ t('Onboarding Title') }}</h1>
+    <p class="muted" style="margin-bottom:16px;">{{ t('Onboarding Subtitle') }}</p>
+
+    <form method="POST" class="form-box">
+      <label for="biz_type">{{ t('Business Type') }}</label>
+      <select id="biz_type" name="biz_type" required>
+        <option value="restaurant">🍽️ {{ t('Restaurant') }}</option>
+        <option value="retail">🛍️ {{ t('Retail') }}</option>
+        <option value="bakery">🥐 {{ t('Bakery') }}</option>
+        <option value="pharmacy">💊 {{ t('Pharmacy') }}</option>
+        <option value="market">🛒 {{ t('Market') }}</option>
+        <option value="other" selected>✨ {{ t('Other') }}</option>
+      </select>
+
+      <label for="lang">{{ t('Preferred Language') }}</label>
+      <select id="lang" name="lang">
+        <option value="pt" {{ 'selected' if lang=='pt' }}>{{ t('Portuguese') }}</option>
+        <option value="en" {{ 'selected' if lang=='en' }}>{{ t('English') }}</option>
+        <option value="es" {{ 'selected' if lang=='es' }}>{{ t('Spanish') }}</option>
+      </select>
+
+      <button class="btn primary" type="submit">{{ t('Save and continue') }}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

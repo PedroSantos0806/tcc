@@ -8,13 +8,12 @@
   </div>
 
   <div class="auth-grid">
-    <!-- Coluna esquerda: Card de login (glass) -->
     <div class="login-card glass" role="form" aria-labelledby="loginTitle">
       <div class="login-logo">
         <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
-        <div class="login-title" id="loginTitle">Entrar</div>
+        <div class="login-title" id="loginTitle">{{ t('Sign in') }}</div>
       </div>
-      <p class="login-sub">Acesse sua conta para gerenciar estoque, vendas e previsões com IA.</p>
+      <p class="login-sub">{{ t('Login subtitle') }}</p>
 
       {% if erro %}
         <div class="alert error" role="alert">{{ erro }}</div>
@@ -28,10 +27,10 @@
       {% endwith %}
 
       <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on" novalidate>
-        <label for="email">E-mail</label>
+        <label for="email">{{ t('Email') }}</label>
         <input class="input" id="email" name="email" type="email" required autofocus placeholder="voce@empresa.com">
 
-        <label for="senha">Senha</label>
+        <label for="senha">{{ t('Password') }}</label>
         <div class="password-row">
           <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
           <button type="button" id="toggleSenha" class="btn-eye" aria-label="Mostrar/ocultar senha">👁️</button>
@@ -39,47 +38,42 @@
 
         <div class="login-ops">
           <label class="remember">
-            <input type="checkbox" name="remember" value="1"> Lembrar de mim
+            <input type="checkbox" name="remember" value="1"> {{ t('Remember me') }}
           </label>
-          <a class="link" href="{{ url_for('auth_bp.esqueci_senha') }}">Esqueceu a senha?</a>
+          <a class="link" href="{{ url_for('auth_bp.esqueci_senha') }}">{{ t('Forgot password?') }}</a>
         </div>
 
-        <button class="btn primary block" type="submit" id="btnEntrar">Entrar</button>
+        <button class="btn primary block" type="submit" id="btnEntrar">{{ t('Sign in') }}</button>
 
-        <div class="divider"><span>ou</span></div>
-
-        <a class="btn ghost block" href="{{ url_for('auth_bp.cadastro') }}">Criar conta gratuita</a>
+        <div class="divider"><span>{{ t('Or') }}</span></div>
+        <a class="btn ghost block" href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
       </form>
 
-      <div class="auth-badge-row" aria-label="Confiado por negócios de todos os tamanhos">
+      <div class="auth-badge-row" aria-label="{{ t('Trusted line') }}">
         <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="" class="badge-icon">
         <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="" class="badge-icon">
         <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="" class="badge-icon">
-        <span class="badge-text">Relatórios, Estoque e Previsão com IA</span>
+        <span class="badge-text">{{ t('Trusted line') }}</span>
+      </div>
+
+      <div style="margin-top:10px; text-align:center;">
+        <a class="btn link" href="{{ url_for('main_bp.demo') }}">{{ t('See demo') }}</a>
       </div>
     </div>
 
-    <!-- Coluna direita: Mensagem de valor + ilustração -->
     <div class="auth-copy">
       <h1 class="hero-title">
-        Previsão de Demanda <span class="grad">de verdade</span> para o seu negócio
+        {{ t('Real demand forecasting') }} <span class="grad">PrevFood</span>
       </h1>
       <p class="hero-sub">
         Reduza rupturas, evite excesso de estoque e aumente sua margem com insights automáticos.
       </p>
-
       <ul class="auth-bullets">
         <li>📈 <b>Previsões diárias</b> com sazonalidade e tendência.</li>
         <li>🧾 <b>Lista de compras inteligente</b> baseada no consumo real.</li>
         <li>📦 <b>Estoque em tempo real</b> por produto e categoria.</li>
         <li>🔒 <b>Segurança</b> e acesso por usuário.</li>
       </ul>
-
-      <div class="auth-cta">
-        <a class="btn primary" href="{{ url_for('auth_bp.cadastro') }}">Começar agora</a>
-        <a class="btn link" href="{{ url_for('main_bp.dashboard') if session.get('usuario_id') else url_for('auth_bp.login') }}">Ver demo</a>
-      </div>
-
       <div class="auth-illustration">
         <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Ilustração de Dashboard">
       </div>
@@ -97,22 +91,18 @@
 
       if (btn && input) {
         btn.addEventListener('click', function (e) {
-          e.preventDefault(); // garante que não submeta por engano
+          e.preventDefault();
           input.type = input.type === 'password' ? 'text' : 'password';
           btn.setAttribute('aria-pressed', input.type === 'text');
         });
       }
-
       if (form && submit) {
         form.addEventListener('submit', function () {
           submit.disabled = true;
-          submit.textContent = 'Entrando...';
+          submit.textContent = '{{ t("Sign in") }}...';
         }, { passive: true });
       }
-    } catch (err) {
-      // evita quebrar a página caso outro script falhe
-      console.error('Login JS error:', err);
-    }
+    } catch (err) { console.error('Login JS error:', err); }
   });
 </script>
 {% endblock %}
