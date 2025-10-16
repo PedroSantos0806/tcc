@@ -80,7 +80,11 @@ I18N = {
 }
 
 def get_lang():
-    return session.get("lang", "pt")
+    try:
+        return session.get("lang", "pt")
+    except Exception:
+        # em boot/testes sem contexto
+        return "pt"
 
 def t(key: str) -> str:
     lang = get_lang()
@@ -89,4 +93,5 @@ def t(key: str) -> str:
 def inject_i18n(app):
     @app.app_context_processor
     def _ctx():
-        return {"t": t, "lang": get_lang()}
+        # não chame get_lang() aqui!
+        return {"t": t, "lang": get_lang}
