@@ -6,21 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+
+  <!-- Favicon usando o mesmo Logo.jpg -->
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/Logo.jpg') }}">
+  <meta name="theme-color" content="#ff6a3d">
 </head>
 <body class="app">
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
     <div class="brand-row">
-      <img class="brand-logo-img"
-      src="{{ url_for('static', filename='img/Logo.jpg') }}"
-      alt="PrevFood">
+      <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
     </div>
 
     <nav class="side-nav">
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>Dashboard</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>Menu</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>Estoque</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.lista_compras' else '' }}" href="{{ url_for('restaurant_bp.lista_compras') }}"><span>Lista de Compras</span></a>
+      <!-- aponta para a rota FUNCIONAL nova -->
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>Lista de Compras</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.relatorios' else '' }}" href="{{ url_for('restaurant_bp.relatorios') }}"><span>Relatórios</span></a>
       <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>Sair</span></a>
     </nav>

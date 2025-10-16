@@ -1,25 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Relatórios (Ingredientes)</h1>
+<h1>Relatórios</h1>
 
-<div class="cards-row">
-  <div class="card"><h3>Total de Vendas</h3><p>{{ kpi.total_vendas|fmt_int }}</p></div>
-  <div class="card"><h3>Receita (itens vendidos)</h3><p>{{ kpi.receita|fmt_money }}</p></div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-title">Total de Vendas</div>
+    <div class="kpi-value">{{ kpi.total_vendas|fmt_int }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Receita (itens vendidos)</div>
+    <div class="kpi-value">{{ kpi.receita|fmt_money }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Custo Total</div>
+    <div class="kpi-value">{{ kpi.custo_total|fmt_money }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">Lucro Estimado</div>
+    <div class="kpi-value">{{ (kpi.receita - kpi.custo_total)|fmt_money }}</div>
+  </div>
 </div>
 
-<h3 style="margin-top:10px;">Consumo e Custos (últimas 4 semanas)</h3>
-<table class="table-padrao">
-  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Uso Total</th><th>Custo Unit.</th><th>Custo Total</th></tr></thead>
-  <tbody>
-    {% for c in consumo %}
-    <tr>
-      <td>{{ c.nome }}</td>
-      <td>{{ c.unidade }}</td>
-      <td>{{ c.uso_total|fmt_int }}</td>
-      <td>{{ c.custo|fmt_money }}</td>
-      <td>{{ c.custo_total|fmt_money }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<h3 style="margin:12px 0;">Uso de Ingredientes (últimas 4 semanas)</h3>
+<div class="usage-list">
+  {% set maxuso = (consumo|max(attribute='uso_total')) or 0 %}
+  {% for c in consumo %}
+    {% set perc = 0 %}
+    {% if maxuso > 0 %}
+      {% set perc = (c.uso_total / maxuso) * 100 %}
+    {% endif %}
+    <div class="usage-item">
+      <div class="usage-head">
+        <div style="font-weight:700">{{ c.nome }}</div>
+        <div class="muted">{{ c.uso_total|fmt_int }} {{ c.unidade }} • {{ c.custo_total|fmt_money }}</div>
+      </div>
+    <div class="usage-bar">
+      <div style="--w: {{ perc|round(0)|int }}; width: calc(var(--w) * 1%);"></div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}

@@ -2,81 +2,65 @@
 {% block content %}
 <h1>Menu do Restaurante</h1>
 
-<section class="explicacao">
-  <h3>Como funciona</h3>
-  <p class="muted">
-    Cadastre os itens de menu (ex.: “Chicken Burger”) e monte a receita adicionando produtos/ingredientes do seu estoque com a
-    <strong>quantidade usada por item</strong>. Em “Registrar Venda (Menu)”, a venda será expandida automaticamente em itens por produto.
-  </p>
-</section>
-
-<div class="cards-row">
-  <div class="card">
-    <h3>Novo item de menu</h3>
-    <form method="POST" class="form-box" style="margin:0">
-      <input type="hidden" name="acao" value="criar">
-      <label>Nome</label>
-      <input name="nome" required placeholder="Ex.: Chicken Burger">
-      <label>Preço de venda (opcional)</label>
-      <input name="preco" type="number" step="0.01" placeholder="Ex.: 19.90">
-      <button type="submit">Criar</button>
-    </form>
-  </div>
+<div class="panel" style="margin:10px 0;">
+  <h3>Novo item de menu</h3>
+  <form method="POST" class="form-box" style="max-width:520px;">
+    <input type="hidden" name="acao" value="criar">
+    <label>Nome</label>
+    <input class="input" name="nome" required placeholder="Ex.: Chicken Burger">
+    <label>Preço de venda (opcional)</label>
+    <input class="input" name="preco" type="number" step="0.01" placeholder="Ex.: 19.90">
+    <button class="btn primary" type="submit">Criar</button>
+  </form>
 </div>
 
 {% if itens|length == 0 %}
-<p class="muted">Nenhum item de menu ainda.</p>
-{% endif %}
+  <p class="muted">Nenhum item de menu ainda.</p>
+{% else %}
+  <div class="menu-grid">
+    {% for item in itens %}
+      <div class="menu-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:800">{{ item.nome }}</div>
+            <div class="price">R$ {{ '%.2f'|format(item.preco or 0) }}</div>
+          </div>
+          <details style="margin-left:12px;">
+            <summary class="details-summary">Adicionar ingrediente</summary>
+            <form method="POST" action="{{ url_for('restaurant_bp.menu_receita_add') }}" class="form-box" style="min-width:300px;">
+              <input type="hidden" name="menu_item_id" value="{{ item.id }}">
+              <label>Produto</label>
+              <select class="input" name="produto_id" required>
+                {% for p in produtos %}<option value="{{ p.id }}">{{ p.nome }}</option>{% endfor %}
+              </select>
+              <label>Quantidade por item</label>
+              <input class="input" type="number" step="0.01" min="0.01" name="qtd_por_item" required placeholder="Ex.: 2 (fatias, unidades, g...)">
+              <button class="btn primary" type="submit">Adicionar</button>
+            </form>
+          </details>
+        </div>
 
-{% for item in itens %}
-  <div class="card" style="margin-top:10px">
-    <h3>{{ item.nome }}</h3>
-    <p class="muted">Preço sugerido: R$ {{ '%.2f'|format(item.preco or 0) }}</p>
-
-    <h4 style="margin:8px 0 6px">Receita</h4>
-    {% set rec = receitas.get(item.id, []) %}
-    {% if rec|length == 0 %}
-      <p class="muted">Nenhum ingrediente cadastrado.</p>
-    {% else %}
-      <table class="table-padrao">
-        <thead>
-          <tr>
-            <th>Produto</th>
-            <th>Quantidade por item</th>
-            <th style="width:120px">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rec %}
-          <tr>
-            <td>{{ r.produto_nome }}</td>
-            <td>{{ r.qtd_por_item|round(2) }}</td>
-            <td>
-              <form method="POST" action="{{ url_for('restaurant_bp.menu_receita_del', receita_id=r.id) }}">
-                <button type="submit">Remover</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% endif %}
-
-    <details style="margin-top:10px">
-      <summary class="btn-plain">Adicionar ingrediente à receita</summary>
-      <form method="POST" action="{{ url_for('restaurant_bp.menu_receita_add') }}" class="form-box">
-        <input type="hidden" name="menu_item_id" value="{{ item.id }}">
-        <label>Produto</label>
-        <select name="produto_id" required>
-          {% for p in produtos %}
-            <option value="{{ p.id }}">{{ p.nome }}</option>
-          {% endfor %}
-        </select>
-        <label>Quantidade por item</label>
-        <input type="number" step="0.01" min="0.01" name="qtd_por_item" required placeholder="Ex.: 2 (fatias, unidades, gramas...)">
-        <button type="submit">Adicionar</button>
-      </form>
-    </details>
+        <div class="menu-ingredients">
+          <h4>Receita</h4>
+          {% set rec = receitas.get(item.id, []) %}
+          {% if rec|length == 0 %}
+            <div class="muted">Nenhum ingrediente cadastrado.</div>
+          {% else %}
+            {% for r in rec %}
+              <div class="menu-ingredient-row">
+                <div>{{ r.produto_nome }}</div>
+                <div class="act">
+                  <span class="badge badge-info">{{ r.qtd_por_item|round(2) }}</span>
+                  <form method="POST" action="{{ url_for('restaurant_bp.menu_receita_del', receita_id=r.id) }}">
+                    <button class="btn" type="submit" title="Remover">Remover</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
   </div>
-{% endfor %}
+{% endif %}
 {% endblock %}

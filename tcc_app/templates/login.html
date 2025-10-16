@@ -1,28 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="login-page">
-  <div class="login-container">
-    <h2>Login</h2>
+<div class="login-wrap">
+  <div></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+      <div class="login-title">Entrar</div>
+    </div>
+    <div class="login-sub">Use seu e-mail e senha para acessar o PrevFood.</div>
 
-    {% if erro %}
-      <div class="erro-box">{{ erro }}</div>
-    {% endif %}
-
-    <form method="POST" class="form-box" autocomplete="on">
+    <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on">
       <label for="email">E-mail</label>
-      <input id="email" name="email" type="email" required autofocus>
+      <input class="input" id="email" name="email" type="email" required autofocus>
 
       <label for="senha">Senha</label>
-      <div class="senha-box">
-        <input id="senha" name="senha" type="password" required>
-        <button type="button" id="toggleSenha" class="toggle-senha" aria-label="Alternar visualização da senha">👁️</button>
+      <div style="display:flex; gap:6px;">
+        <input class="input" id="senha" name="senha" type="password" required style="flex:1">
+        <button type="button" id="toggleSenha" class="btn" style="padding:0 12px;">👁️</button>
       </div>
 
-      <button type="submit">Entrar</button>
+      <button class="btn primary block" type="submit">Entrar</button>
     </form>
 
-    <div class="login-link">
-      <a href="{{ url_for('auth_bp.esqueci_senha') }}">Esqueceu a senha?</a> ·
+    <div style="display:flex; justify-content:space-between; margin-top:10px;">
+      <a href="{{ url_for('auth_bp.esqueci_senha') }}">Esqueceu a senha?</a>
       <a href="{{ url_for('auth_bp.cadastro') }}">Criar Conta</a>
     </div>
   </div>

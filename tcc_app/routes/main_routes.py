@@ -536,3 +536,86 @@ def import_csv():
     if request.method == 'POST':
         return redirect(url_for('main_bp.home'))
     return render_template('admin_import.html')
+
+@main_bp.route('/lista_compras', methods=['GET'])
+def lista_compras():
+    if 'usuario_id' not in session:
+        return redirect(url_for('auth_bp.login'))
+    uid = session['usuario_id']
+
+    margem = float(request.args.get('margem') or 30)   # %
+    horizonte = int(request.args.get('horizonte') or 7)  # dias
+
+    conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        WITH serie AS (
+            SELECT iv.produto_id, DATE(v.data) AS dia, SUM(iv.quantidade) AS qtd
+            FROM vendas v
+            JOIN itens_venda iv ON iv.venda_id = v.id
+            WHERE v.usuario_id = %s AND v.data >= (CURRENT_DATE - INTERVAL 42 DAY)
+            GROUP BY iv.produto_id, DATE(v.data)
+        )
+        SELECT p.id, p.nome, p.preco_custo AS custo, p.quantidade AS qtd_inicial,
+               COALESCE((SELECT SUM(s.qtd) FROM serie s WHERE s.produto_id = p.id), 0) AS qtd_42,
+               COALESCE((SELECT COUNT(DISTINCT s.dia) FROM serie s WHERE s.produto_id = p.id), 0) AS dias_ativos
+        FROM produtos p
+        WHERE p.usuario_id = %s
+        ORDER BY p.nome
+    """, (uid, uid))
+    base = cur.fetchall()
+    cur.close(); conn.close()
+
+    itens, total = [], 0.0
+    for r in base:
+        dias = max(1, int(r['dias_ativos'] or 0))
+        uso_dia = float(r['qtd_42'] or 0) / dias
+        demanda = uso_dia * horizonte * (1.0 + margem/100.0)
+        sugerido = max(0, round(demanda - float(r['qtd_inicial'] or 0)))
+        if sugerido <= 0: continue
+        custo_est = sugerido * float(r['custo'] or 0.0)
+        total += custo_est
+        itens.append({
+            "id": r["id"], "nome": r["nome"], "unidade": "un",
+            "sugerido": int(sugerido), "custo": float(r["custo"] or 0.0),
+            "custo_estimado": round(custo_est, 2)
+        })
+
+    return render_template('lista_compras.html',
+                           itens=itens, total=round(total,2),
+                           margem=int(margem), horizonte=horizonte)
+
+# =============== POPULAR DADOS PARA TESTE (DEV) ===============
+@main_bp.route('/admin/seed_demo')
+def seed_demo():
+    if 'usuario_id' not in session: return redirect(url_for('auth_bp.login'))
+    uid = session['usuario_id']
+    import random, datetime as dt
+    conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+
+    produtos = [
+        ("Pão Brioche", 2.00, 3.50, 200, "Ingredientes"),
+        ("Hambúrguer 150g", 5.50, 8.90, 150, "Ingredientes"),
+        ("Mussarela", 0.04, 0.10, 8000, "Ingredientes"),
+        ("Batata Palito", 0.30, 0.60, 300, "Ingredientes"),
+        ("Refrigerante Lata", 2.50, 6.50, 120, "Bebidas"),
+    ]
+    for n,c,v,q,cat in produtos:
+        cur.execute("""INSERT INTO produtos (nome,preco,preco_custo,preco_venda,quantidade,categoria,usuario_id,data_chegada)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,CURDATE())
+                       ON DUPLICATE KEY UPDATE preco_custo=VALUES(preco_custo), preco_venda=VALUES(preco_venda)""",
+                    (n,c,c,v,q,cat,uid))
+    conn.commit()
+
+    for d in range(45, 0, -1):
+        dia = (dt.datetime.now() - dt.timedelta(days=d)).replace(hour=random.randint(10,22), minute=random.randint(0,59))
+        cur.execute("INSERT INTO vendas (usuario_id, data) VALUES (%s,%s)", (uid, dia))
+        vid = cur.lastrowid
+        cur.execute("SELECT id, preco_venda FROM produtos WHERE usuario_id=%s", (uid,))
+        prods = cur.fetchall()
+        for p in random.sample(prods, k=min(len(prods), random.randint(2,4))):
+            q = random.randint(1, 8)
+            cur.execute("""INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario)
+                           VALUES (%s,%s,%s,%s)""", (vid, p["id"], q, p["preco_venda"]))
+    conn.commit(); cur.close(); conn.close()
+    flash("Seed de dados concluído!")
+    return redirect(url_for('main_bp.dashboard'))
