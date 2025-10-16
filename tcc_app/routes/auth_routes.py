@@ -33,6 +33,7 @@ def login():
         email = (request.form.get('email') or '').strip()
         senha = (request.form.get('senha') or '').strip()
         remember = request.form.get('remember') == '1'
+
         if not email or not senha:
             erro = 'Preencha todos os campos.'
         else:
@@ -50,14 +51,12 @@ def login():
                 session['usuario_id'] = sess_id
                 session['usuario_nome'] = nome
                 session['usuario_email'] = email_
-                if remember: session.permanent = True
-                # aplica preferências vindas do cadastro (antes do login)
-                if session.get('biz_type_prefill') and not session.get('biz_type'):
-                    session['biz_type'] = session.pop('biz_type_prefill')
+                if remember:
+                    session.permanent = True
+                # aplica apenas idioma prefill (se veio do cadastro); NÃO força onboarding
                 if session.get('lang_prefill') and not session.get('lang'):
                     session['lang'] = session.pop('lang_prefill')
-                if not session.get('biz_type'):
-                    return redirect(url_for('main_bp.onboarding'))
+                # segue direto pro app
                 return redirect(url_for('main_bp.home'))
 
             if usuario_db:
@@ -74,10 +73,13 @@ def login():
                     except Exception:
                         ok = (raw == senha)
                     if ok:
-                        try: uid = int(row.get('id') or 0) or 999999
-                        except Exception: uid = 999999
+                        try:
+                            uid = int(row.get('id') or 0) or 999999
+                        except Exception:
+                            uid = 999999
                         return _do_login(uid, row.get('nome') or 'Usuário', row.get('email') or email)
-                if not erro: erro = 'E-mail ou senha incorretos.'
+                if not erro:
+                    erro = 'E-mail ou senha incorretos.'
     return render_template('login.html', erro=erro)
 
 @auth_bp.route('/cadastro', methods=['GET', 'POST'])
@@ -107,9 +109,9 @@ def cadastro():
                     cur.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hash_senha))
                     conn.commit()
                     cur.close(); conn.close()
-                    # guarda preferências para aplicar no primeiro login
-                    session['biz_type_prefill'] = biz_type
+                    # guarda preferências para aplicar no primeiro login (idioma) e mantém biz_type só no cadastro
                     session['lang_prefill'] = lang
+                    session['biz_type_prefill'] = biz_type  # guardado apenas para métricas/opcional
                     flash('Conta criada com sucesso! Faça login.')
                     return redirect(url_for('auth_bp.login'))
                 cur.close(); conn.close()

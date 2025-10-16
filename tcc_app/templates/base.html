@@ -10,15 +10,23 @@
   <meta name="theme-color" content="#ff6a3d">
 </head>
 <body class="{% if session.get('usuario_id') %}app{% endif %}">
+  <!-- Seletor de idioma fixo (sempre visível) -->
+  <nav class="lang-fixed" aria-label="Selecionar idioma">
+    <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" title="Português" class="{{ 'active' if (session.get('lang','pt')=='pt') else '' }}">
+      <img src="{{ url_for('static', filename='img/flags/br.svg') }}" alt="Português">
+    </a>
+    <a href="{{ url_for('auth_bp.set_lang', code='en') }}" title="English" class="{{ 'active' if (session.get('lang','pt')=='en') else '' }}">
+      <img src="{{ url_for('static', filename='img/flags/us.svg') }}" alt="English">
+    </a>
+    <a href="{{ url_for('auth_bp.set_lang', code='es') }}" title="Español" class="{{ 'active' if (session.get('lang','pt')=='es') else '' }}">
+      <img src="{{ url_for('static', filename='img/flags/es.svg') }}" alt="Español">
+    </a>
+  </nav>
+
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
-    <div class="brand-row" style="justify-content:space-between; align-items:center;">
+    <div class="brand-row">
       <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
-      <div class="lang-switch">
-        <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" class="{{ 'active' if lang=='pt' }}">PT</a>
-        <a href="{{ url_for('auth_bp.set_lang', code='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
-        <a href="{{ url_for('auth_bp.set_lang', code='es') }}" class="{{ 'active' if lang=='es' }}">ES</a>
-      </div>
     </div>
 
     <nav class="side-nav">
@@ -50,14 +58,6 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
-
-    {% if not session.get('usuario_id') %}
-    <div class="lang-top">
-      <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" class="{{ 'active' if lang=='pt' }}">PT</a>
-      <a href="{{ url_for('auth_bp.set_lang', code='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
-      <a href="{{ url_for('auth_bp.set_lang', code='es') }}" class="{{ 'active' if lang=='es' }}">ES</a>
-    </div>
-    {% endif %}
   </main>
 </body>
 </html>

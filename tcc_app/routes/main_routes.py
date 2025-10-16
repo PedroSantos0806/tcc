@@ -672,6 +672,8 @@ def relatorios():
     uid = session['usuario_id']
 
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+
+    # KPIs agregados
     cur.execute("""
         SELECT
             COUNT(DISTINCT v.id) AS total_vendas,
@@ -683,12 +685,14 @@ def relatorios():
         WHERE v.usuario_id = %s
     """, (uid,))
     k = cur.fetchone() or {"total_vendas":0,"receita":0.0,"custo_total":0.0}
+    # normaliza tipos para template
     kpi = {
-        "total_vendas": int(k["total_vendas"] or 0),
-        "receita": float(k["receita"] or 0.0),
-        "custo_total": float(k["custo_total"] or 0.0)
+        "total_vendas": int(k.get("total_vendas") or 0),
+        "receita": float(k.get("receita") or 0.0),
+        "custo_total": float(k.get("custo_total") or 0.0)
     }
 
+    # Consumo últimos 28 dias por produto
     cur.execute("""
         SELECT
             p.id,
@@ -704,9 +708,20 @@ def relatorios():
         GROUP BY p.id, p.nome
         ORDER BY uso_total DESC, p.nome ASC
     """, (uid,))
-    consumo = cur.fetchall()
-
+    consumo_rows = cur.fetchall() or []
     cur.close(); conn.close()
+
+    # normaliza linhas
+    consumo = []
+    for r in consumo_rows:
+        consumo.append({
+            "id": r.get("id"),
+            "nome": r.get("nome") or "",
+            "unidade": r.get("unidade") or "un",
+            "uso_total": int(r.get("uso_total") or 0),
+            "custo_total": float(r.get("custo_total") or 0.0),
+        })
+
     return render_template('relatorios.html', kpi=kpi, consumo=consumo)
 
 # =============== ONBOARDING (NEW) ===============
