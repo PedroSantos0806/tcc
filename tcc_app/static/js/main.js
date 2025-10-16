@@ -2,16 +2,32 @@
 // Utilidades gerais
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
-  // Visualizar/ocultar senha
-  document.querySelectorAll("#toggleSenha").forEach(btn => {
-    const input = btn?.parentElement?.querySelector("input[type='password'], input[type='text']");
-    if (!input) return;
-    btn.addEventListener("click", () => {
-      const isPass = input.type === "password";
-      input.type = isPass ? "text" : "password";
-      btn.textContent = isPass ? "🙈" : "👁️";
-    });
-  });
+(function () {
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#toggleSenha, .btn-eye');
+    if (!btn) return;
+    e.preventDefault();
+    let input = btn.previousElementSibling;
+    if (!input || input.tagName !== 'INPUT') {
+      const id = btn.getAttribute('aria-controls');
+      if (id) input = document.getElementById(id);
+    }
+    if (!input || input.tagName !== 'INPUT') return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', input.type === 'text');
+  }, false);
+
+  document.addEventListener('submit', function (e) {
+    const submit = e.target.querySelector('button[type="submit"], input[type="submit"]');
+    if (submit) {
+      const original = submit.textContent || submit.value;
+      submit.disabled = true;
+      if (submit.tagName === 'BUTTON') submit.textContent = (original || '...');
+      else submit.value = (original || '...');
+      setTimeout(() => { submit.disabled = false; if (submit.tagName === 'BUTTON') submit.textContent = original; else submit.value = original; }, 8000);
+    }
+  }, false);
+})();
 
   // Carrossel da home (se existir)
   document.querySelectorAll("[data-carousel]").forEach(initCarousel);

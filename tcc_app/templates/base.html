@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#ff6a3d">
 </head>
 <body class="{% if session.get('usuario_id') %}app{% endif %}">
-  <!-- Seletor de idioma fixo (sempre visível) -->
+  <!-- Seletor de idioma fixo -->
   <nav class="lang-fixed" aria-label="Selecionar idioma">
     <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" title="Português" class="{{ 'active' if (session.get('lang','pt')=='pt') else '' }}">
       <img src="{{ url_for('static', filename='img/flags/br.svg') }}" alt="Português">
@@ -26,7 +26,11 @@
   {% if session.get('usuario_id') %}
   <aside class="sidebar">
     <div class="brand-row">
-      <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+      {% if session.get('vertical') == 'restaurant' %}
+        <img class="brand-logo-img" src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+      {% else %}
+        <img class="brand-logo-img" src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite">
+      {% endif %}
     </div>
 
     <nav class="side-nav">
@@ -56,7 +60,6 @@
         </div>
       {% endif %}
     {% endwith %}
-
     {% block content %}{% endblock %}
   </main>
 </body>

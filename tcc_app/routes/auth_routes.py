@@ -46,22 +46,36 @@ def login():
             except Exception as e:
                 print("Erro DB login:", e)
 
-            def _do_login(sess_id, nome, email_):
+            def _do_login(sess_id, nome, email_, tenant_vertical=None):
                 session.clear()
                 session['usuario_id'] = sess_id
                 session['usuario_nome'] = nome
                 session['usuario_email'] = email_
+                if tenant_vertical:
+                    session['vertical'] = tenant_vertical
                 if remember:
                     session.permanent = True
-                # aplica apenas idioma prefill (se veio do cadastro); NÃO força onboarding
                 if session.get('lang_prefill') and not session.get('lang'):
                     session['lang'] = session.pop('lang_prefill')
-                # segue direto pro app
                 return redirect(url_for('main_bp.home'))
 
             if usuario_db:
                 if check_password_hash(usuario_db['senha'], senha):
-                    return _do_login(usuario_db['id'], usuario_db['nome'], usuario_db['email'])
+                    # tenta descobrir vertical via tenants (se existir)
+                    tenant_vertical = None
+                    try:
+                        conn = get_db_connection(); cur = conn.cursor(dictionary=True)
+                        cur.execute("""
+                            SELECT t.vertical FROM tenants t
+                            JOIN usuarios u ON u.tenant_id = t.id
+                            WHERE u.id = %s
+                        """, (usuario_db['id'],))
+                        r = cur.fetchone()
+                        if r: tenant_vertical = r.get('vertical')
+                        cur.close(); conn.close()
+                    except Exception:
+                        pass
+                    return _do_login(usuario_db['id'], usuario_db['nome'], usuario_db['email'], tenant_vertical)
                 else:
                     erro = 'E-mail ou senha incorretos.'
             else:
@@ -89,9 +103,11 @@ def cadastro():
         nome = (request.form.get('nome') or '').strip()
         email = (request.form.get('email') or '').strip()
         senha = (request.form.get('senha') or '').strip()
-        biz_type = (request.form.get('biz_type') or '').strip() or 'other'
-        lang = (request.form.get('lang') or '').strip() or 'pt'
+        biz_type = (request.form.get('biz_type') or 'general').strip()
+        lang = (request.form.get('lang') or 'pt').strip()
         if lang not in ('pt','en','es'): lang = 'pt'
+        if biz_type not in ('general','market','apparel','restaurant','electronics'):
+            biz_type = 'general'
 
         if not nome or not email or not senha:
             erro = 'Todos os campos são obrigatórios.'
@@ -105,13 +121,35 @@ def cadastro():
                 if existe:
                     erro = 'E-mail já cadastrado.'
                 else:
+                    # tenta criar tenant; se tabela não existir, segue fluxo normal
+                    tenant_id = None
+                    try:
+                        slug = email.split("@",1)[0].replace(".","-").lower()
+                        cur.execute("""
+                            INSERT INTO tenants (name, slug, vertical, settings)
+                            VALUES (%s, %s, %s, JSON_OBJECT('lang', %s))
+                        """, (f"{nome.split()[0]}'s Workspace", slug, biz_type, lang))
+                        tenant_id = cur.lastrowid
+                    except Exception as te:
+                        # sem tenants (sem migração) — ignora
+                        tenant_id = None
+
                     hash_senha = generate_password_hash(senha)
-                    cur.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, hash_senha))
-                    conn.commit()
-                    cur.close(); conn.close()
-                    # guarda preferências para aplicar no primeiro login (idioma) e mantém biz_type só no cadastro
+                    if tenant_id:
+                        cur.execute("""
+                            INSERT INTO usuarios (nome, email, senha, tenant_id)
+                            VALUES (%s, %s, %s, %s)
+                        """, (nome, email, hash_senha, tenant_id))
+                    else:
+                        cur.execute("""
+                            INSERT INTO usuarios (nome, email, senha)
+                            VALUES (%s, %s, %s)
+                        """, (nome, email, hash_senha))
+
+                    conn.commit(); cur.close(); conn.close()
+
                     session['lang_prefill'] = lang
-                    session['biz_type_prefill'] = biz_type  # guardado apenas para métricas/opcional
+                    session['biz_type_prefill'] = biz_type
                     flash('Conta criada com sucesso! Faça login.')
                     return redirect(url_for('auth_bp.login'))
                 cur.close(); conn.close()

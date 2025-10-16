@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
-# ---- Filtros Jinja (usados em vários templates) ----
+# ---- Filtros Jinja ----
 def _fmt_int(v):
     try:
         return f"{int(round(float(v or 0))):,}".replace(",", ".")
@@ -27,24 +27,26 @@ def _fmt_date(dt):
 
 def create_app():
     load_dotenv()
-
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
-    # DB teardown
+    # DB teardown/init
     from .db import init_app as init_db
     init_db(app)
 
-    # registra filtros
+    # filtros
     app.jinja_env.filters["fmt_int"] = _fmt_int
     app.jinja_env.filters["fmt_money"] = _fmt_money
     app.jinja_env.filters["fmt_date"] = _fmt_date
+
+    # i18n
+    from .i18n import inject_i18n
+    inject_i18n(app)
 
     # Blueprints
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
     from .routes.restaurant_routes import restaurant_bp
-
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(restaurant_bp, url_prefix="")

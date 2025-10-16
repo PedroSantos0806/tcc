@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="44" viewBox="0 0 220 44">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff6a3d"></stop>
+      <stop offset="1" stop-color="#3b82f6"></stop>
+    </linearGradient>
+  </defs>
+  <!-- ícone -->
+  <g transform="translate(6,6)">
+    <rect rx="10" width="32" height="32" fill="url(#g)"></rect>
+    <path d="M10 18c4-8 12-8 16 0M10 22h12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"></path>
+  </g>
+  <!-- wordmark -->
+  <text x="50" y="29" font-family="Inter, ui-sans-serif" font-size="24" font-weight="800" fill="#0f172a">Prev</text>
+  <text x="105" y="29" font-family="Inter, ui-sans-serif" font-size="24" font-weight="800" fill="url(#g)">Suite</text>
+</svg>
