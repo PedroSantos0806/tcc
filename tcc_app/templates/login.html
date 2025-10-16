@@ -88,20 +88,31 @@
 </section>
 
 <script>
-  (function () {
-    const btn = document.getElementById('toggleSenha');
-    const input = document.getElementById('senha');
-    const submit = document.getElementById('btnEntrar');
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      const btn = document.getElementById('toggleSenha');
+      const input = document.getElementById('senha');
+      const form = document.querySelector('form');
+      const submit = document.getElementById('btnEntrar');
 
-    btn?.addEventListener('click', () => {
-      input.type = input.type === 'password' ? 'text' : 'password';
-      btn.setAttribute('aria-pressed', input.type === 'text');
-    });
+      if (btn && input) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault(); // garante que não submeta por engano
+          input.type = input.type === 'password' ? 'text' : 'password';
+          btn.setAttribute('aria-pressed', input.type === 'text');
+        });
+      }
 
-    document.querySelector('form')?.addEventListener('submit', () => {
-      submit.disabled = true;
-      submit.textContent = 'Entrando...';
-    });
-  })();
+      if (form && submit) {
+        form.addEventListener('submit', function () {
+          submit.disabled = true;
+          submit.textContent = 'Entrando...';
+        }, { passive: true });
+      }
+    } catch (err) {
+      // evita quebrar a página caso outro script falhe
+      console.error('Login JS error:', err);
+    }
+  });
 </script>
 {% endblock %}
