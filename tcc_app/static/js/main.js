@@ -2,29 +2,33 @@
 // Utilidades gerais
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
-  // === Toggle senha (com ícone alternando) ===
-  document.addEventListener("click", function (e) {
-    const btn = e.target.closest('#toggleSenha, .btn-eye');
+  // ------------ Toggle senha (robusto) ------------
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('[data-eye]');
     if (!btn) return;
-    e.preventDefault();
 
-    const targetId = btn.getAttribute('aria-controls') || 'senha';
-    const input = document.getElementById(targetId);
+    e.preventDefault();
+    const targetId = btn.getAttribute('aria-controls');
+    let input = targetId ? document.getElementById(targetId) : null;
+
+    if (!input) {
+      // fallback: irmão anterior
+      input = btn.previousElementSibling && btn.previousElementSibling.tagName === 'INPUT'
+        ? btn.previousElementSibling
+        : null;
+    }
     if (!input) return;
 
-    const isPwd = input.type === 'password';
-    input.type = isPwd ? 'text' : 'password';
-    btn.setAttribute('aria-pressed', String(isPwd));
-
-    const openIcon = btn.querySelector('.eye-open');
-    const closedIcon = btn.querySelector('.eye-closed');
-    if (openIcon && closedIcon) {
-      openIcon.style.display = isPwd ? 'none' : '';
-      closedIcon.style.display = isPwd ? '' : 'none';
-    }
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.setAttribute('aria-pressed', String(!showing));
+    // alterna ícone
+    btn.innerHTML = showing ? '👁️' : '🙈';
+    // acessibilidade
+    btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
   }, false);
 
-  // Desabilita submit rapidamente para evitar duplo clique
+  // Desabilitar submit brevemente para evitar duplo clique
   document.addEventListener('submit', function (e) {
     const submit = e.target.querySelector('button[type="submit"], input[type="submit"]');
     if (submit) {
@@ -36,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         submit.disabled = false;
         if (submit.tagName === 'BUTTON') submit.textContent = original;
         else submit.value = original;
-      }, 8000);
+      }, 4000);
     }
   }, false);
 

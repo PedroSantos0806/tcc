@@ -2,53 +2,34 @@
 {% block content %}
 <h1>{{ t('Stock') }}</h1>
 
-<div class="explicacao">
-  <h3>{{ t('How to read this page?') }}</h3>
-  <p>
-    <strong>Em Estoque = Quantidade Inicial − Vendidos</strong>.
-    {{ t('Status') }}:
-    <span class="badge-ok">{{ t('OK') }}</span>,
-    <span class="badge-warn">{{ t('Low') }}</span>,
-    <span class="badge-crit">{{ t('Critical') }}</span>.
-  </p>
-</div>
-
 <table class="table-padrao">
   <thead>
     <tr>
       <th>{{ t('Products') }}</th>
       <th>{{ t('Category') }}</th>
-      <th>{{ t('Sale Price (R$)') }}</th>
-      <th>{{ t('Cost Price (R$)') }}</th>
-      <th>{{ t('Quantity') }}</th>
-      <th>Vendidos</th>
+      <th>{{ t('Unit price') }}</th>
+      <th>{{ t('Unit cost') }}</th>
+      <th>{{ t('Items') }}</th>
+      <th>{{ t('Sold %') }}</th>
       <th>{{ t('In stock') }}</th>
       <th>{{ t('Status') }}</th>
     </tr>
   </thead>
   <tbody>
     {% for p in produtos %}
-    {% set limite = (p.qtd_inicial * 0.2) if p.qtd_inicial else 0 %}
-    {% set critico = limite * 0.5 %}
-    {% set status = t('OK') %}
-    {% set status_class = 'badge-ok' %}
-    {% if p.em_estoque <= critico %}
-      {% set status = t('Critical') %}
-      {% set status_class = 'badge-crit' %}
-    {% elif p.em_estoque <= limite %}
-      {% set status = t('Low') %}
-      {% set status_class = 'badge-warn' %}
-    {% endif %}
-    <tr>
-      <td>{{ p.nome }}</td>
-      <td>{{ p.categoria }}</td>
-      <td>{{ p.preco_venda|fmt_money }}</td>
-      <td>{{ p.preco_custo|fmt_money }}</td>
-      <td>{{ p.qtd_inicial|fmt_int }}</td>
-      <td>{{ p.vendidos|fmt_int }}</td>
-      <td>{{ p.em_estoque|fmt_int }}</td>
-      <td><span class="badge {{ status_class }}">{{ status }}</span></td>
-    </tr>
+      <tr>
+        <td>{{ p.nome }}</td>
+        <td>{{ p.categoria }}</td>
+        <td>{{ p.preco_venda|fmt_money }}</td>
+        <td>{{ p.preco_custo|fmt_money }}</td>
+        <td>{{ p.qtd_inicial|fmt_int }}</td>
+        <td>{{ p.perc_vendido }}%</td>
+        <td>{{ p.em_estoque|fmt_int }}</td>
+        <td>
+          {% set cls = 'badge-ok' if p.status == 'OK' else 'badge-warn' %}
+          <span class="badge {{ cls }}">{{ t(p.status == 'OK' and 'OK' or 'Low') }}</span>
+        </td>
+      </tr>
     {% endfor %}
   </tbody>
 </table>

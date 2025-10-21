@@ -1,44 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="login-wrap">
-  <div></div>
-  <div class="login-card">
-    <div class="login-logo">
-      <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite">
-      <div class="login-title">{{ t('Sign in') }}</div>
-    </div>
-    <div class="login-sub">{{ t('Login subtitle') }}</div>
-
-    <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on">
-      <label for="email">{{ t('Email') }}</label>
-      <input class="input" id="email" name="email" type="email" required autofocus>
-
-      <label for="senha">{{ t('Password') }}</label>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <input class="input" id="senha" name="senha" type="password" required style="flex:1">
-        <button type="button" id="toggleSenha" class="btn-eye" aria-controls="senha" aria-label="Toggle password" aria-pressed="false" style="padding:0 12px;">
-          <span class="eye-open">👁️</span><span class="eye-closed" style="display:none;">🙈</span>
-        </button>
-      </div>
-
-      <div style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" id="remember" name="remember" value="1">
-        <label for="remember">{{ t('Remember me') }}</label>
-      </div>
-
-      <button class="btn primary block" type="submit">{{ t('Sign in') }}</button>
-    </form>
-
-    <div style="display:flex; justify-content:space-between; margin-top:10px;">
-      <a href="{{ url_for('auth_bp.esqueci_senha') }}">{{ t('Forgot password?') }}</a>
-      <a href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
-    </div>
-
-    {% if erro %}
-      <div class="flash" style="margin-top:10px;">
-        <div class="flash-item">{{ erro }}</div>
-      </div>
-    {% endif %}
+<section class="auth-hero">
+  <div class="auth-hero-bg">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-grid"></div>
   </div>
-</div>
+
+  <div class="auth-grid">
+    <div class="login-card glass" role="form" aria-labelledby="signinTitle">
+      <div class="login-logo">
+        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite" style="height:42px">
+        <div class="login-title" id="signinTitle">{{ t('Sign in') }}</div>
+      </div>
+      <p class="login-sub">{{ t('Login subtitle') }}</p>
+
+      {% if erro %}<div class="alert error">{{ erro }}</div>{% endif %}
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert info">{% for m in messages %}<div>{{ m }}</div>{% endfor %}</div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on" novalidate>
+        <label for="email">{{ t('Email') }}</label>
+        <input class="input" id="email" name="email" type="email" required autofocus placeholder="demo@restaurant.com">
+
+        <label for="senha">{{ t('Password') }}</label>
+        <div class="password-row">
+          <input class="input" id="senha" name="senha" type="password" required placeholder="••••••••">
+          <button type="button" class="btn-eye" data-eye aria-controls="senha" aria-label="Mostrar senha">👁️</button>
+        </div>
+
+        <label class="checkbox-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+          <input type="checkbox" name="remember" value="1" style="width:auto;"> {{ t('Remember me') }}
+        </label>
+
+        <button class="btn primary block" type="submit">{{ t('Sign in') }}</button>
+      </form>
+
+      <div class="login-links" style="display:flex;justify-content:space-between;margin-top:10px;">
+        <a href="{{ url_for('auth_bp.esqueci_senha') }}">{{ t('Forgot password?') }}</a>
+        <a href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
+      </div>
+    </div>
+
+    <div class="auth-copy">
+      <h1 class="hero-title">{{ t('Real demand forecasting') }} <span class="grad">PrevFood</span></h1>
+      <p class="hero-sub">{{ t('Trusted line') }}</p>
+      <div class="auth-illustration">
+        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Illustration">
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

@@ -18,15 +18,14 @@
 </div>
 
 <table class="table-padrao">
-  <thead><tr><th>{{ t('Ingredient') }}</th><th>{{ t('Unit') }}</th><th>{{ t('Suggested Qty') }}</th><th>{{ t('Unit cost') }}</th><th>{{ t('Est. Cost') }}</th></tr></thead>
+  <thead><tr>
+    <th>{{ t('Ingredient') }}</th><th>{{ t('Unit') }}</th><th>{{ t('Suggested Qty') }}</th><th>{{ t('Unit cost') }}</th><th>{{ t('Est. Cost') }}</th>
+  </tr></thead>
   <tbody>
     {% for it in itens %}
     <tr>
-      <td>{{ it.nome }}</td>
-      <td>{{ it.unidade }}</td>
-      <td>{{ it.sugerido }}</td>
-      <td>{{ it.custo|fmt_money }}</td>
-      <td>{{ it.custo_estimado|fmt_money }}</td>
+      <td>{{ it.nome }}</td><td>{{ it.unidade }}</td><td>{{ it.sugerido }}</td>
+      <td>{{ it.custo|fmt_money }}</td><td>{{ it.custo_estimado|fmt_money }}</td>
     </tr>
     {% endfor %}
   </tbody>

@@ -1,18 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ t('History and Forecast') }}</h1>
-
-<div class="explicacao">
-  <h3>{{ t('How we forecast?') }}</h3>
-  <p>
-    {{ t('History and Forecast') }}
-  </p>
-</div>
+<h1>{{ t('Real demand forecasting') }}</h1>
 
 <form method="GET" class="form-box" id="filtroForm">
-  <label for="categoria">{{ t('Filter by category:') }}</label>
+  <label for="categoria">{{ t('Category') }}</label>
   <select name="categoria" id="categoria" onchange="this.form.submit()">
-    <option value="">{{ t('All (f)') }}</option>
+    <option value="">{{ t('All') }}</option>
     {% for cat in categorias %}
       <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
     {% endfor %}
@@ -20,13 +13,13 @@
 </form>
 
 <div class="cards-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0;">
-  <div class="card"><h3>Horizonte</h3><p>14 {{ t('Horizon (days)') }}</p></div>
-  <div class="card"><h3>{{ t('Last day') }}</h3><p id="kpi-ult">—</p></div>
-  <div class="card"><h3>{{ t('7-day avg') }}</h3><p id="kpi-ma7">—</p></div>
+  <div class="card"><h3>Horizon</h3><p>14 {{ t('Days') if false else 'days' }}</p></div>
+  <div class="card"><h3>Last day</h3><p id="kpi-ult">—</p></div>
+  <div class="card"><h3>MA(7)</h3><p id="kpi-ma7">—</p></div>
 </div>
 
 <canvas id="prevChart" height="180"></canvas>
-<p id="msgSemDados" style="display:none;margin-top:10px;">{{ t('No data to predict') }}</p>
+<p id="msgSemDados" style="display:none;margin-top:10px;">{{ t('No suggestions now') }}</p>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
