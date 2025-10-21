@@ -10,8 +10,12 @@
 </div>
 
 <h3 style="margin:12px 0;">{{ t('Ingredient usage (last 4 weeks)') }}</h3>
+
+{# -------- compatível com Jinja antigo -------- #}
+{% set usos = consumo | map(attribute='uso_total') | list %}
+{% set maxuso = usos|length and (usos|max) or 0 %}
+
 <div class="usage-list">
-  {% set maxuso = (consumo | map(attribute='uso_total') | max(default=0)) %}
   {% for c in consumo %}
     {% set perc = (c.uso_total / (maxuso if maxuso else 1)) * 100 %}
     <div class="usage-item">
