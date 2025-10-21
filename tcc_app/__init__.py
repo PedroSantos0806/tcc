@@ -30,7 +30,7 @@ def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
 
-    # DB teardown/init
+    # DB
     from .db import init_app as init_db
     init_db(app)
 
@@ -47,9 +47,12 @@ def create_app():
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
     from .routes.restaurant_routes import restaurant_bp
+    from .routes.relatorios_routes import relatorios_bp  # << add
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(restaurant_bp, url_prefix="")
+    app.register_blueprint(relatorios_bp)  # << add
 
     @app.route("/health")
     def health():

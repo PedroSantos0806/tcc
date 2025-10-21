@@ -2,21 +2,29 @@
 // Utilidades gerais
 // =======================
 document.addEventListener("DOMContentLoaded", () => {
-(function () {
-  document.addEventListener('click', function (e) {
+  // === Toggle senha (com ícone alternando) ===
+  document.addEventListener("click", function (e) {
     const btn = e.target.closest('#toggleSenha, .btn-eye');
     if (!btn) return;
     e.preventDefault();
-    let input = btn.previousElementSibling;
-    if (!input || input.tagName !== 'INPUT') {
-      const id = btn.getAttribute('aria-controls');
-      if (id) input = document.getElementById(id);
+
+    const targetId = btn.getAttribute('aria-controls') || 'senha';
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', String(isPwd));
+
+    const openIcon = btn.querySelector('.eye-open');
+    const closedIcon = btn.querySelector('.eye-closed');
+    if (openIcon && closedIcon) {
+      openIcon.style.display = isPwd ? 'none' : '';
+      closedIcon.style.display = isPwd ? '' : 'none';
     }
-    if (!input || input.tagName !== 'INPUT') return;
-    input.type = input.type === 'password' ? 'text' : 'password';
-    btn.setAttribute('aria-pressed', input.type === 'text');
   }, false);
 
+  // Desabilita submit rapidamente para evitar duplo clique
   document.addEventListener('submit', function (e) {
     const submit = e.target.querySelector('button[type="submit"], input[type="submit"]');
     if (submit) {
@@ -24,10 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
       submit.disabled = true;
       if (submit.tagName === 'BUTTON') submit.textContent = (original || '...');
       else submit.value = (original || '...');
-      setTimeout(() => { submit.disabled = false; if (submit.tagName === 'BUTTON') submit.textContent = original; else submit.value = original; }, 8000);
+      setTimeout(() => {
+        submit.disabled = false;
+        if (submit.tagName === 'BUTTON') submit.textContent = original;
+        else submit.value = original;
+      }, 8000);
     }
   }, false);
-})();
 
   // Carrossel da home (se existir)
   document.querySelectorAll("[data-carousel]").forEach(initCarousel);
@@ -35,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Campos dinâmicos do cadastro de produto
   setupProdutoDinamico();
 
-  // Menus em “pastas” (se você ainda usa no topo)
+  // Menus em “pastas”
   initFolderMenus();
 
   // Auto-hide dos flashes

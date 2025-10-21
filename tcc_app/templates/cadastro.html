@@ -10,10 +10,10 @@
   <div class="auth-grid">
     <div class="login-card glass" role="form" aria-labelledby="signupTitle">
       <div class="login-logo">
-        <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
+        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite">
         <div class="login-title" id="signupTitle">{{ t('Sign up') }}</div>
       </div>
-      <p class="login-sub">Crie sua conta e personalize o app para o seu segmento.</p>
+      <p class="login-sub">{{ t('Save and continue') }}</p>
 
       {% if erro %}
         <div class="alert error" role="alert">{{ erro }}</div>
@@ -36,7 +36,9 @@
         <label for="senha">{{ t('Password') }}</label>
         <div class="password-row">
           <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
-          <button type="button" id="toggleSenha" class="btn-eye" aria-label="Mostrar/ocultar senha">👁️</button>
+          <button type="button" id="toggleSenha" class="btn-eye" aria-controls="senha" aria-label="Mostrar/ocultar senha" aria-pressed="false">
+            <span class="eye-open">👁️</span><span class="eye-closed" style="display:none;">🙈</span>
+          </button>
         </div>
 
         <label for="biz_type">{{ t('Business Type') }}</label>
@@ -78,18 +80,4 @@
     </div>
   </div>
 </section>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('toggleSenha');
-    const input = document.getElementById('senha');
-    if (btn && input) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        input.type = input.type === 'password' ? 'text' : 'password';
-        btn.setAttribute('aria-pressed', input.type === 'text');
-      });
-    }
-  });
-</script>
 {% endblock %}

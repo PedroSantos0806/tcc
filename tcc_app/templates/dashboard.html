@@ -1,47 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Dashboard</h1>
-<p class="muted">Visão geral do seu restaurante</p>
+<h1>{{ t('Dashboard') }}</h1>
+<p class="muted">{{ t('Overview') }}</p>
 
-<!-- KPIs -->
 <div class="kpi-grid">
   <div class="kpi-card">
-    <div class="kpi-title">Vendas desta Semana</div>
+    <div class="kpi-title">{{ t('Weekly sales') }}</div>
     <div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Receita da Semana</div>
+    <div class="kpi-title">{{ t('Weekly revenue') }}</div>
     <div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Itens com Estoque Baixo</div>
+    <div class="kpi-title">{{ t('Low stock items') }}</div>
     <div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Itens em Falta</div>
+    <div class="kpi-title">{{ t('Out of stock items') }}</div>
     <div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div>
   </div>
 </div>
 
-<!-- Banner -->
 <div class="welcome-banner">
-  <h3>Bem-vindo ao PrevFood!</h3>
-  <p>Comece configurando seu menu e ingredientes para rastrear estoque e gerar predições inteligentes.</p>
+  <h3>{{ t('Welcome to PrevFood!') }}</h3>
+  <p>{{ t('Start setup text') }}</p>
   <div class="banner-actions">
-    <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">Configurar Menu</a>
-    <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Gerenciar Estoque</a>
+    <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">{{ t('Configure Menu') }}</a>
+    <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">{{ t('Manage Stock') }}</a>
   </div>
 </div>
 
-<!-- Cards auxiliares (placeholder) -->
 <div class="cards-2col">
   <div class="card big">
-    <h3>Predições da Próxima Semana</h3>
-    <div class="empty-state"><div class="emoji">📦</div><p class="muted">Configure seus itens do menu para ver predições</p></div>
+    <h3>{{ t('Next week predictions') }}</h3>
+    <div class="empty-state"><div class="emoji">📦</div><p class="muted">—</p></div>
   </div>
   <div class="card big">
-    <h3>Alertas de Estoque</h3>
-    <div class="empty-state"><div class="emoji">⚠️</div><p class="muted">Adicione ingredientes para monitorar alertas</p></div>
+    <h3>{{ t('Stock alerts') }}</h3>
+    <div class="empty-state"><div class="emoji">⚠️</div><p class="muted">—</p></div>
   </div>
 </div>
 {% endblock %}

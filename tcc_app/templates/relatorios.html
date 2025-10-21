@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Relatórios</h1>
+<h1>{{ t('Reports') }}</h1>
 
 <div class="kpi-grid">
   <div class="kpi-card">
-    <div class="kpi-title">Total de Vendas</div>
+    <div class="kpi-title">{{ t('Total Sales') }}</div>
     <div class="kpi-value">{{ kpi.total_vendas|fmt_int }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Receita (itens vendidos)</div>
+    <div class="kpi-title">{{ t('Revenue (sold items)') }}</div>
     <div class="kpi-value">{{ kpi.receita|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Custo Total</div>
+    <div class="kpi-title">{{ t('Total Cost') }}</div>
     <div class="kpi-value">{{ kpi.custo_total|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Lucro Estimado</div>
+    <div class="kpi-title">{{ t('Estimated Profit') }}</div>
     <div class="kpi-value">{{ (kpi.receita - kpi.custo_total)|fmt_money }}</div>
   </div>
 </div>
 
-<h3 style="margin:12px 0;">Uso de Ingredientes (últimas 4 semanas)</h3>
+<h3 style="margin:12px 0;">{{ t('Ingredient usage (last 4 weeks)') }}</h3>
 <div class="usage-list">
   {% set maxuso = (consumo|max(attribute='uso_total')) or 0 %}
   {% for c in consumo %}
@@ -34,8 +34,8 @@
         <div style="font-weight:700">{{ c.nome }}</div>
         <div class="muted">{{ c.uso_total|fmt_int }} {{ c.unidade }} • {{ c.custo_total|fmt_money }}</div>
       </div>
-    <div class="usage-bar">
-      <div style="--w: {{ perc|round(0)|int }}; width: calc(var(--w) * 1%);"></div>
+      <div class="usage-bar">
+        <div style="--w: {{ perc|round(0)|int }}; width: calc(var(--w) * 1%);"></div>
       </div>
     </div>
   {% endfor %}

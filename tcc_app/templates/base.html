@@ -2,15 +2,15 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>PrevFood • IA para Estoque e Vendas</title>
+  <title>PrevSuite • IA para Estoque e Vendas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
-  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/Logo.jpg') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/prevsuite-logo.svg') }}">
   <meta name="theme-color" content="#ff6a3d">
 </head>
 <body class="{% if session.get('usuario_id') %}app{% endif %}">
-  <!-- Seletor de idioma fixo -->
+  <!-- Seletor de idioma (fixo) -->
   <nav class="lang-fixed" aria-label="Selecionar idioma">
     <a href="{{ url_for('auth_bp.set_lang', code='pt') }}" title="Português" class="{{ 'active' if (session.get('lang','pt')=='pt') else '' }}">
       <img src="{{ url_for('static', filename='img/flags/br.svg') }}" alt="Português">
@@ -38,7 +38,7 @@
       <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>{{ t('Menu') }}</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>{{ t('Stock') }}</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>{{ t('Shopping List') }}</span></a>
-      <a class="side-link {{ 'active' if request.endpoint=='main_bp.relatorios' else '' }}" href="{{ url_for('main_bp.relatorios') }}"><span>{{ t('Reports') }}</span></a>
+      <a class="side-link {{ 'active' if request.endpoint=='relatorios_bp.relatorios' else '' }}" href="{{ url_for('relatorios_bp.relatorios') }}"><span>{{ t('Reports') }}</span></a>
       <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>{{ t('Logout') }}</span></a>
     </nav>
 

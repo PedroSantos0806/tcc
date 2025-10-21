@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Lista de Compras</h1>
+<h1>{{ t('Shopping List') }}</h1>
 
 <form method="GET" class="form-box" style="max-width:520px;">
-  <label>Margem de Segurança (%)</label>
+  <label>{{ t('Safety Margin (%)') }}</label>
   <input type="number" name="margem" min="0" max="100" value="{{ margem }}">
-  <label>Horizonte (dias)</label>
+  <label>{{ t('Horizon (days)') }}</label>
   <input type="number" name="horizonte" min="1" max="30" value="{{ horizonte }}">
-  <button type="submit">Recalcular</button>
+  <button type="submit">{{ t('Recalculate') }}</button>
 </form>
 
 {% if itens %}
 <div class="cards-row">
-  <div class="card"><h3>Total de Itens</h3><p>{{ itens|length }}</p></div>
-  <div class="card"><h3>Custo Estimado</h3><p>{{ total|fmt_money }}</p></div>
-  <div class="card"><h3>Margem</h3><p>{{ margem }}%</p></div>
+  <div class="card"><h3>{{ t('Total Items') }}</h3><p>{{ itens|length }}</p></div>
+  <div class="card"><h3>{{ t('Estimated Cost') }}</h3><p>{{ total|fmt_money }}</p></div>
+  <div class="card"><h3>{{ t('Margin') }}</h3><p>{{ margem }}%</p></div>
 </div>
 
 <table class="table-padrao">
-  <thead><tr><th>Ingrediente</th><th>Unidade</th><th>Qtd Sugerida</th><th>Custo Unit</th><th>Custo Estimado</th></tr></thead>
+  <thead><tr><th>{{ t('Ingredient') }}</th><th>{{ t('Unit') }}</th><th>{{ t('Suggested Qty') }}</th><th>{{ t('Unit cost') }}</th><th>{{ t('Est. Cost') }}</th></tr></thead>
   <tbody>
     {% for it in itens %}
     <tr>
@@ -32,6 +32,6 @@
   </tbody>
 </table>
 {% else %}
-<p class="muted">Sem itens sugeridos no momento.</p>
+<p class="muted">{{ t('No suggestions now') }}</p>
 {% endif %}
 {% endblock %}

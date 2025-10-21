@@ -1,28 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Registrar Venda (Menu)</h1>
+<h1>{{ t('Register Sale') }} ({{ t('Menu') }})</h1>
 
 <section class="explicacao">
-  <h3>Como funciona</h3>
+  <h3>{{ t('How to read this page?') }}</h3>
   <p class="muted">
-    Selecione um item do menu e a quantidade vendida. O sistema expande a receita e registra os itens vendidos por produto
-    em <strong>itens_venda</strong>, vinculados à venda criada.
+    Selecione um item do menu e a quantidade vendida.
   </p>
 </section>
 
 <form method="POST" class="form-box">
-  <label>Item do menu</label>
+  <label>{{ t('Menu') }}</label>
   <select name="menu_item_id" required>
-    <option value="">Selecione...</option>
+    <option value="">{{ t('Select...') }}</option>
     {% for i in itens %}<option value="{{ i.id }}">{{ i.nome }}</option>{% endfor %}
   </select>
 
-  <label>Quantidade</label>
+  <label>{{ t('Quantity') }}</label>
   <input type="number" name="quantidade" min="1" step="1" required value="1">
 
   <label>Data</label>
   <input type="datetime-local" name="data_venda" required>
 
-  <button type="submit">Registrar Venda</button>
+  <button type="submit">{{ t('Save') }}</button>
 </form>
 {% endblock %}

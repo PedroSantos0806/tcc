@@ -1,108 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="auth-hero">
-  <div class="auth-hero-bg">
-    <div class="bg-blob bg-blob-1"></div>
-    <div class="bg-blob bg-blob-2"></div>
-    <div class="bg-grid"></div>
-  </div>
+<div class="login-wrap">
+  <div></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite">
+      <div class="login-title">{{ t('Sign in') }}</div>
+    </div>
+    <div class="login-sub">{{ t('Login subtitle') }}</div>
 
-  <div class="auth-grid">
-    <div class="login-card glass" role="form" aria-labelledby="loginTitle">
-      <div class="login-logo">
-        <img src="{{ url_for('static', filename='img/Logo.jpg') }}" alt="PrevFood">
-        <div class="login-title" id="loginTitle">{{ t('Sign in') }}</div>
-      </div>
-      <p class="login-sub">{{ t('Login subtitle') }}</p>
+    <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on">
+      <label for="email">{{ t('Email') }}</label>
+      <input class="input" id="email" name="email" type="email" required autofocus>
 
-      {% if erro %}
-        <div class="alert error" role="alert">{{ erro }}</div>
-      {% endif %}
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="alert info" role="status">
-            {% for m in messages %}<div>{{ m }}</div>{% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-
-      <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on" novalidate>
-        <label for="email">{{ t('Email') }}</label>
-        <input class="input" id="email" name="email" type="email" required autofocus placeholder="voce@empresa.com">
-
-        <label for="senha">{{ t('Password') }}</label>
-        <div class="password-row">
-          <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
-          <button type="button" id="toggleSenha" class="btn-eye" aria-label="Mostrar/ocultar senha">👁️</button>
-        </div>
-
-        <div class="login-ops">
-          <label class="remember">
-            <input type="checkbox" name="remember" value="1"> {{ t('Remember me') }}
-          </label>
-          <a class="link" href="{{ url_for('auth_bp.esqueci_senha') }}">{{ t('Forgot password?') }}</a>
-        </div>
-
-        <button class="btn primary block" type="submit" id="btnEntrar">{{ t('Sign in') }}</button>
-
-        <div class="divider"><span>{{ t('Or') }}</span></div>
-        <a class="btn ghost block" href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
-      </form>
-
-      <div class="auth-badge-row" aria-label="{{ t('Trusted line') }}">
-        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="" class="badge-icon">
-        <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="" class="badge-icon">
-        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="" class="badge-icon">
-        <span class="badge-text">{{ t('Trusted line') }}</span>
+      <label for="senha">{{ t('Password') }}</label>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input class="input" id="senha" name="senha" type="password" required style="flex:1">
+        <button type="button" id="toggleSenha" class="btn-eye" aria-controls="senha" aria-label="Toggle password" aria-pressed="false" style="padding:0 12px;">
+          <span class="eye-open">👁️</span><span class="eye-closed" style="display:none;">🙈</span>
+        </button>
       </div>
 
-      <div style="margin-top:10px; text-align:center;">
-        <a class="btn link" href="{{ url_for('main_bp.demo') }}">{{ t('See demo') }}</a>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="remember" name="remember" value="1">
+        <label for="remember">{{ t('Remember me') }}</label>
       </div>
+
+      <button class="btn primary block" type="submit">{{ t('Sign in') }}</button>
+    </form>
+
+    <div style="display:flex; justify-content:space-between; margin-top:10px;">
+      <a href="{{ url_for('auth_bp.esqueci_senha') }}">{{ t('Forgot password?') }}</a>
+      <a href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
     </div>
 
-    <div class="auth-copy">
-      <h1 class="hero-title">
-        {{ t('Real demand forecasting') }} <span class="grad">PrevFood</span>
-      </h1>
-      <p class="hero-sub">
-        Reduza rupturas, evite excesso de estoque e aumente sua margem com insights automáticos.
-      </p>
-      <ul class="auth-bullets">
-        <li>📈 <b>Previsões diárias</b> com sazonalidade e tendência.</li>
-        <li>🧾 <b>Lista de compras inteligente</b> baseada no consumo real.</li>
-        <li>📦 <b>Estoque em tempo real</b> por produto e categoria.</li>
-        <li>🔒 <b>Segurança</b> e acesso por usuário.</li>
-      </ul>
-      <div class="auth-illustration">
-        <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Ilustração de Dashboard">
+    {% if erro %}
+      <div class="flash" style="margin-top:10px;">
+        <div class="flash-item">{{ erro }}</div>
       </div>
-    </div>
+    {% endif %}
   </div>
-</section>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    try {
-      const btn = document.getElementById('toggleSenha');
-      const input = document.getElementById('senha');
-      const form = document.querySelector('form');
-      const submit = document.getElementById('btnEntrar');
-
-      if (btn && input) {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          input.type = input.type === 'password' ? 'text' : 'password';
-          btn.setAttribute('aria-pressed', input.type === 'text');
-        });
-      }
-      if (form && submit) {
-        form.addEventListener('submit', function () {
-          submit.disabled = true;
-          submit.textContent = '{{ t("Sign in") }}...';
-        }, { passive: true });
-      }
-    } catch (err) { console.error('Login JS error:', err); }
-  });
-</script>
+</div>
 {% endblock %}

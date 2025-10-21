@@ -1,19 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Previsão de Vendas</h1>
+<h1>{{ t('History and Forecast') }}</h1>
 
 <div class="explicacao">
-  <h3>Como calculamos a previsão?</h3>
+  <h3>{{ t('How we forecast?') }}</h3>
   <p>
-    Agrupamos as vendas por dia (MySQL + CSV, quando existir) e aplicamos um modelo leve:
-    <strong>tendência linear + sazonalidade semanal + média móvel</strong>. O horizonte exibido é de 14 dias.
+    {{ t('History and Forecast') }}
   </p>
 </div>
 
 <form method="GET" class="form-box" id="filtroForm">
-  <label for="categoria">Filtrar por categoria:</label>
+  <label for="categoria">{{ t('Filter by category:') }}</label>
   <select name="categoria" id="categoria" onchange="this.form.submit()">
-    <option value="">Todas</option>
+    <option value="">{{ t('All (f)') }}</option>
     {% for cat in categorias %}
       <option value="{{ cat }}" {% if cat == categoria_selecionada %}selected{% endif %}>{{ cat }}</option>
     {% endfor %}
@@ -21,13 +20,13 @@
 </form>
 
 <div class="cards-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0;">
-  <div class="card"><h3>Horizonte</h3><p>14 dias</p></div>
-  <div class="card"><h3>Último dia</h3><p id="kpi-ult">—</p></div>
-  <div class="card"><h3>Média 7 dias</h3><p id="kpi-ma7">—</p></div>
+  <div class="card"><h3>Horizonte</h3><p>14 {{ t('Horizon (days)') }}</p></div>
+  <div class="card"><h3>{{ t('Last day') }}</h3><p id="kpi-ult">—</p></div>
+  <div class="card"><h3>{{ t('7-day avg') }}</h3><p id="kpi-ma7">—</p></div>
 </div>
 
 <canvas id="prevChart" height="180"></canvas>
-<p id="msgSemDados" style="display:none;margin-top:10px;">Sem dados suficientes para prever.</p>
+<p id="msgSemDados" style="display:none;margin-top:10px;">{{ t('No data to predict') }}</p>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -63,7 +62,7 @@ async function loadPrev(){
       responsive: true,
       plugins: {
         legend: { position: 'top' },
-        title: { display: true, text: 'Histórico (até 60d) e Previsão (14d)' },
+        title: { display: true, text: '{{ t("History and Forecast") }}' },
         tooltip: { mode: 'index', intersect: false }
       },
       interaction: { mode: 'index', intersect: false },

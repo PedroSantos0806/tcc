@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Estoque (Ingredientes)</h1>
+<h1>{{ t('Stock') }} (Ingredientes)</h1>
 
 <form method="POST" class="form-box" style="max-width:640px;">
-  <h3>Novo Ingrediente</h3>
-  <label>Nome</label>
+  <h3>{{ t('Create Product') }}</h3>
+  <label>{{ t('Product Name') }}</label>
   <input name="nome" required>
-  <label>Unidade (ex.: un, g, ml, fatia)</label>
+  <label>{{ t('Unit') }} (ex.: un, g, ml, fatia)</label>
   <input name="unidade">
-  <label>Custo por unidade</label>
+  <label>{{ t('Unit cost') }}</label>
   <input name="custo" type="number" step="0.01" min="0" required>
   <label>Perecível?</label>
   <select name="perecivel">
@@ -19,22 +19,22 @@
   <input name="estoque_atual" type="number" step="1" min="0" required>
   <label>Estoque mínimo</label>
   <input name="estoque_minimo" type="number" step="1" min="0" required>
-  <button type="submit">Salvar</button>
+  <button type="submit">{{ t('Save') }}</button>
 </form>
 
 <table class="table-padrao" style="margin-top:10px;">
   <thead>
     <tr>
-      <th>Ingrediente</th><th>Unidade</th><th>Custo</th><th>Perecível</th>
-      <th>Estoque</th><th>Mínimo</th><th>Status</th>
+      <th>{{ t('Ingredient') }}</th><th>{{ t('Unit') }}</th><th>{{ t('Unit cost') }}</th><th>Perecível</th>
+      <th>{{ t('In stock') }}</th><th>Mínimo</th><th>{{ t('Status') }}</th>
     </tr>
   </thead>
   <tbody>
     {% for i in ingredientes %}
-    {% set status = 'OK' %}
+    {% set status = t('OK') %}
     {% set cls = 'badge-ok' %}
     {% if i.estoque_atual <= (i.estoque_minimo or 0) %}
-      {% set status = 'Baixo' %}
+      {% set status = t('Low') %}
       {% set cls = 'badge-warn' %}
     {% endif %}
     <tr>

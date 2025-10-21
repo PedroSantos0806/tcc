@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Registrar Venda</h1>
+<h1>{{ t('Register Sale') }}</h1>
 
 <form method="POST" class="form-box" id="form-venda">
-  <label for="data_venda">Data da Venda</label>
+  <label for="data_venda">Data</label>
   <input id="data_venda" name="data_venda" type="date" required>
 
   <div id="itens">
     <div class="item">
-      <label>Produto</label>
+      <label>{{ t('Products') }}</label>
       <select name="produto_id[]" required>
-        <option value="">Selecione...</option>
+        <option value="">{{ t('Select...') }}</option>
         {% for p in produtos %}
           <option value="{{ p.id }}">{{ p.nome }} — R$ {{ '%.2f'|format(p.preco_venda|float) }}</option>
         {% endfor %}
       </select>
 
-      <label>Quantidade</label>
+      <label>{{ t('Quantity') }}</label>
       <input name="quantidade[]" type="number" min="1" value="1" required>
     </div>
   </div>
 
-  <button type="button" id="addItemBtn">Adicionar Item</button>
-  <button type="submit">Salvar Venda</button>
+  <button type="button" id="addItemBtn">{{ t('Add Item') }}</button>
+  <button type="submit">{{ t('Save') }}</button>
 </form>
 
 <script>
@@ -33,15 +33,14 @@
     const div = document.createElement('div'); 
     div.className='item';
     div.innerHTML = `
-      <label>Produto</label>
+      <label>{{ t('Products') }}</label>
       <select name="produto_id[]" required>
-        <option value="">Selecione...</option>
+        <option value="">{{ t('Select...') }}</option>
         {% for p in produtos %}
           <option value="{{ p.id }}">{{ p.nome }} — R$ {{ '%.2f'|format(p.preco_venda|float) }}</option>
         {% endfor %}
       </select>
-
-      <label>Quantidade</label>
+      <label>{{ t('Quantity') }}</label>
       <input name="quantidade[]" type="number" min="1" value="1" required>
     `;
     wrap.appendChild(div);
