@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-hero">
+  <div class="auth-hero-bg">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="auth-grid">
+    <div class="login-card glass" role="form" aria-labelledby="resetTitle">
+      <div class="login-logo">
+        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="Prev Suite">
+        <div class="login-title" id="resetTitle">Redefinir senha</div>
+      </div>
+      <p class="login-sub">Digite o <strong>código</strong> que enviamos por e-mail, seu e-mail e a nova senha.</p>
+
+      {% if erro %}
+        <div class="alert error">{{ erro }}</div>
+      {% endif %}
+
+      <form method="POST" class="form-box" autocomplete="off">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" required value="{{ email_prefill }}" placeholder="voce@empresa.com">
+
+        <label for="token">Código (6 dígitos)</label>
+        <input id="token" name="token" type="text" pattern="[0-9]{6}" maxlength="6" inputmode="numeric" required placeholder="______">
+
+        <label for="senha">Nova senha</label>
+        <div class="password-row">
+          <input id="senha" name="senha" type="password" minlength="6" required placeholder="••••••••">
+          <button type="button" class="btn-eye" data-eye aria-controls="senha" aria-label="Mostrar/ocultar">👁️</button>
+        </div>
+
+        <button class="btn primary block" type="submit">Salvar nova senha</button>
+      </form>
+
+      <div style="margin-top:10px;text-align:center;">
+        <a class="link" href="{{ url_for('auth_bp.login') }}">Voltar ao login</a>
+      </div>
+    </div>
+
+    <div class="auth-copy">
+      <h1 class="hero-title">Token de segurança</h1>
+      <p class="hero-sub">O código expira em 20 minutos.</p>
+      <div class="auth-illustration">
+        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
