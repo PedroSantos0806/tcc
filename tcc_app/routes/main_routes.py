@@ -7,6 +7,7 @@ main_bp = Blueprint('main_bp', __name__)
 # ===================== i18n (leve) =====================
 I18N = {
     "pt": {
+        # Navegação / comuns
         "Dashboard": "Dashboard",
         "Menu": "Menu",
         "Stock": "Estoque",
@@ -25,8 +26,9 @@ I18N = {
         "Real demand forecasting": "Previsão de Demanda de verdade",
         "Login subtitle": "Acesse sua conta para gerenciar estoque, vendas e previsões com IA.",
         "Trusted line": "Relatórios, Estoque e Previsão com IA",
+        # Onboarding
         "Onboarding Title": "Conte sobre o seu negócio",
-        "Onboarding Subtitle": "Personalizamos o PrevFood conforme seu segmento.",
+        "Onboarding Subtitle": "Personalizamos o PrevSuite conforme seu segmento.",
         "Business Type": "Tipo de estabelecimento",
         "Restaurant": "Restaurante / Lanchonete",
         "Retail": "Varejo (moda, calçados, etc.)",
@@ -44,6 +46,19 @@ I18N = {
         "Sign up": "Criar conta",
         "Have account?": "Já tem conta?",
         "Sign in now": "Entrar agora",
+
+        # ==== (NOVAS) KPIs / dashboard / banner ====
+        "Weekly sales": "Vendas semanais",
+        "Weekly revenue": "Receita semanal",
+        "Low stock items": "Itens com pouco estoque",
+        "Out of stock items": "Itens sem estoque",
+
+        "Start setup text": "Comece configurando seu estoque e suas categorias.",
+        "Configure Menu": "Configurar Cardápio",
+        "Manage Stock": "Gerenciar Estoque",
+        "Next week predictions": "Previsões para a próxima semana",
+        "No suggestions now": "Sem sugestões no momento",
+        "Stock alerts": "Alertas de estoque",
     },
     "en": {
         "Dashboard": "Dashboard",
@@ -65,7 +80,7 @@ I18N = {
         "Login subtitle": "Access your account to manage inventory, sales and AI forecasts.",
         "Trusted line": "Reports, Inventory and AI Forecasting",
         "Onboarding Title": "Tell us about your business",
-        "Onboarding Subtitle": "We personalize PrevFood by your segment.",
+        "Onboarding Subtitle": "We personalize PrevSuite by your segment.",
         "Business Type": "Business type",
         "Restaurant": "Restaurant / Diner",
         "Retail": "Retail (fashion, shoes, etc.)",
@@ -83,6 +98,18 @@ I18N = {
         "Sign up": "Create account",
         "Have account?": "Already have an account?",
         "Sign in now": "Sign in now",
+
+        "Weekly sales": "Weekly sales",
+        "Weekly revenue": "Weekly revenue",
+        "Low stock items": "Low stock items",
+        "Out of stock items": "Out of stock items",
+
+        "Start setup text": "Start by setting up your inventory and categories.",
+        "Configure Menu": "Configure Menu",
+        "Manage Stock": "Manage Stock",
+        "Next week predictions": "Next week predictions",
+        "No suggestions now": "No suggestions now",
+        "Stock alerts": "Stock alerts",
     },
     "es": {
         "Dashboard": "Panel",
@@ -104,7 +131,7 @@ I18N = {
         "Login subtitle": "Accede para gestionar inventario, ventas y pronósticos con IA.",
         "Trusted line": "Informes, Inventario y Pronóstico con IA",
         "Onboarding Title": "Cuéntanos sobre tu negocio",
-        "Onboarding Subtitle": "Personalizamos PrevFood según tu segmento.",
+        "Onboarding Subtitle": "Personalizamos PrevSuite según tu segmento.",
         "Business Type": "Tipo de negocio",
         "Restaurant": "Restaurante / Cafetería",
         "Retail": "Retail (moda, calzado, etc.)",
@@ -122,6 +149,18 @@ I18N = {
         "Sign up": "Crear cuenta",
         "Have account?": "¿Ya tienes cuenta?",
         "Sign in now": "Iniciar ahora",
+
+        "Weekly sales": "Ventas semanales",
+        "Weekly revenue": "Ingresos semanales",
+        "Low stock items": "Ítems con poco stock",
+        "Out of stock items": "Ítems sin stock",
+
+        "Start setup text": "Comienza configurando tu inventario y categorías.",
+        "Configure Menu": "Configurar Menú",
+        "Manage Stock": "Administrar Inventario",
+        "Next week predictions": "Predicciones para la próxima semana",
+        "No suggestions now": "Sin sugerencias por ahora",
+        "Stock alerts": "Alertas de stock",
     }
 }
 
@@ -204,7 +243,6 @@ def _csv_previsao_series(email, categoria_sel=None):
 # ===================== PÁGINAS PÚBLICAS =====================
 @main_bp.route('/demo')
 def demo():
-    # Página pública de apresentação
     return render_template('demo.html')
 
 # ===================== KPIs / Home =====================
@@ -685,7 +723,6 @@ def relatorios():
         WHERE v.usuario_id = %s
     """, (uid,))
     k = cur.fetchone() or {"total_vendas":0,"receita":0.0,"custo_total":0.0}
-    # normaliza tipos para template
     kpi = {
         "total_vendas": int(k.get("total_vendas") or 0),
         "receita": float(k.get("receita") or 0.0),
@@ -711,7 +748,6 @@ def relatorios():
     consumo_rows = cur.fetchall() or []
     cur.close(); conn.close()
 
-    # normaliza linhas
     consumo = []
     for r in consumo_rows:
         consumo.append({
@@ -724,7 +760,7 @@ def relatorios():
 
     return render_template('relatorios.html', kpi=kpi, consumo=consumo)
 
-# =============== ONBOARDING (NEW) ===============
+# =============== ONBOARDING (ajustado) ===============
 @main_bp.route('/onboarding', methods=['GET', 'POST'])
 def onboarding():
     if 'usuario_id' not in session:
@@ -734,7 +770,8 @@ def onboarding():
         biz_type = (request.form.get('biz_type') or '').strip() or 'other'
         lang = (request.form.get('lang') or '').strip() or 'pt'
         if lang not in ('pt', 'en', 'es'): lang = 'pt'
-        session['biz_type'] = biz_type
+        # >>> usar a mesma chave que o base.html consulta:
+        session['vertical'] = biz_type
         session['lang'] = lang
         flash(I18N[lang]["Profile saved"])
         return redirect(url_for('main_bp.dashboard'))

@@ -4,10 +4,22 @@
 <p class="muted">{{ t('Login subtitle') }}</p>
 
 <div class="kpi-grid">
-  <div class="kpi-card"><div class="kpi-title">{{ t('Weekly sales') }}</div><div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div></div>
-  <div class="kpi-card"><div class="kpi-title">{{ t('Weekly revenue') }}</div><div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div></div>
-  <div class="kpi-card"><div class="kpi-title">{{ t('Low stock items') }}</div><div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div></div>
-  <div class="kpi-card"><div class="kpi-title">{{ t('Out of stock items') }}</div><div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div></div>
+  <div class="kpi-card">
+    <div class="kpi-title">{{ t('Weekly sales') }}</div>
+    <div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">{{ t('Weekly revenue') }}</div>
+    <div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">{{ t('Low stock items') }}</div>
+    <div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-title">{{ t('Out of stock items') }}</div>
+    <div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div>
+  </div>
 </div>
 
 <div class="welcome-banner">
