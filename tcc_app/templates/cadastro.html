@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+
+{# [MOD] Nova tela de cadastro com texto "Previsão de demanda com IA com PrevSuite!" #}
+
 <section class="auth-hero">
   <div class="auth-hero-bg">
     <div class="bg-blob bg-blob-1"></div>
@@ -8,76 +11,79 @@
   </div>
 
   <div class="auth-grid">
-    <div class="login-card glass" role="form" aria-labelledby="signupTitle">
-      <div class="login-logo">
-        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite">
-        <div class="login-title" id="signupTitle">{{ t('Sign up') }}</div>
-      </div>
-      <p class="login-sub">{{ t('Save and continue') }}</p>
-
-      {% if erro %}
-        <div class="alert error" role="alert">{{ erro }}</div>
-      {% endif %}
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="alert info" role="status">
-            {% for m in messages %}<div>{{ m }}</div>{% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-
-      <form method="POST" action="{{ url_for('auth_bp.cadastro') }}" class="form-box" autocomplete="on" novalidate>
-        <label for="nome">{{ t('Name') }}</label>
-        <input class="input" id="nome" name="nome" type="text" required placeholder="Seu nome">
-
-        <label for="email">{{ t('Email') }}</label>
-        <input class="input" id="email" name="email" type="email" required placeholder="voce@empresa.com">
-
-        <label for="senha">{{ t('Password') }}</label>
-        <div class="password-row">
-          <input class="input" id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
-          <button type="button" id="toggleSenha" class="btn-eye" aria-controls="senha" aria-label="Mostrar/ocultar senha" aria-pressed="false">
-            <span class="eye-open">👁️</span><span class="eye-closed" style="display:none;">🙈</span>
-          </button>
-        </div>
-
-        <label for="biz_type">{{ t('Business Type') }}</label>
-        <select id="biz_type" name="biz_type" required>
-          <option value="restaurant">{{ t('Restaurant') }}</option>
-          <option value="retail">{{ t('Retail') }}</option>
-          <option value="bakery">{{ t('Bakery') }}</option>
-          <option value="pharmacy">{{ t('Pharmacy') }}</option>
-          <option value="market">{{ t('Market') }}</option>
-          <option value="other" selected>{{ t('Other') }}</option>
-        </select>
-
-        <label for="lang">{{ t('Preferred Language') }}</label>
-        <select id="lang" name="lang">
-          <option value="pt" {{ 'selected' if lang=='pt' }}>Português (Brasil)</option>
-          <option value="en" {{ 'selected' if lang=='en' }}>English</option>
-          <option value="es" {{ 'selected' if lang=='es' }}>Español</option>
-        </select>
-
-        <button class="btn primary block" type="submit">{{ t('Sign up') }}</button>
-      </form>
-
-      <div style="margin-top:10px; text-align:center;">
-        <span class="muted">{{ t('Have account?') }}</span>
-        <a class="link" href="{{ url_for('auth_bp.login') }}"> {{ t('Sign in now') }}</a>
-      </div>
-    </div>
-
     <div class="auth-copy">
       <h1 class="hero-title">
-        {{ t('Real demand forecasting') }} <span class="grad">PrevFood</span>
+        Previsão de demanda com IA <span class="grad">com PrevSuite!</span>  {# [MOD] texto pedido #}
       </h1>
       <p class="hero-sub">
-        Onboarding rápido para adequar o produto ao seu tipo de negócio.
+        Cadastre sua conta e comece a controlar estoque, vendas e previsões de forma simples e visual.
       </p>
-      <div class="auth-illustration">
-        <img src="{{ url_for('static', filename='img/il-previsao.svg') }}" alt="Ilustração">
+      <ul class="auth-bullets">
+        <li>✔ Acompanhe vendas e estoque em tempo real;</li>
+        <li>✔ Veja quais produtos mais vendem e quais estão encalhados;</li>
+        <li>✔ Use previsões com IA para planejar compras e reduzir desperdício.</li>
+      </ul>
+    </div>
+
+    <div class="login-card glass" role="form" aria-labelledby="signupTitle">
+      <div class="login-logo">
+        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="Prev Suite">
+        <div class="login-title" id="signupTitle">Criar conta</div>
+      </div>
+      <p class="login-sub">Leva menos de 2 minutos para começar.</p>
+
+      {% if erro %}
+        <div class="alert error">
+          {{ erro }}
+        </div>
+      {% endif %}
+
+      <form method="POST" class="form-box" autocomplete="on">
+        <label>
+          Nome completo
+          <input type="text" name="nome" required placeholder="Seu nome">
+        </label>
+
+        <label>
+          E-mail
+          <input type="email" name="email" required placeholder="voce@empresa.com">
+        </label>
+
+        <label>
+          Senha
+          <input type="password" name="senha" required minlength="6" placeholder="Mínimo 6 caracteres">
+        </label>
+
+        <div style="display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+          <label>
+            Tipo de negócio
+            <select name="biz_type" required>
+              <option value="restaurant">Restaurante / Lanchonete</option>
+              <option value="retail">Varejo (moda, calçados, etc.)</option>
+              <option value="market">Mercado / Mercearia</option>
+              <option value="other" selected>Outro</option>
+            </select>
+          </label>
+
+          <label>
+            Idioma
+            <select name="lang">
+              <option value="pt" selected>Português (Brasil)</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+            </select>
+          </label>
+        </div>
+
+        <button class="btn primary block" type="submit">Criar conta</button>
+      </form>
+
+      <div style="margin-top:10px;text-align:center;">
+        <span style="font-size:14px;">Já tem conta?</span>
+        <a class="link" href="{{ url_for('auth_bp.login') }}">Entrar</a>
       </div>
     </div>
   </div>
 </section>
+
 {% endblock %}

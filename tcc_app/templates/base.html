@@ -38,13 +38,16 @@
         <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>{{ t('Shopping List') }}</span></a>
       {% endif %}
 
-      <!-- [MOD] Novo link para registrar venda, sempre visível -->
+      <!-- [MOD] Link para registrar venda -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.cadastrar_venda' else '' }}" href="{{ url_for('main_bp.cadastrar_venda') }}"><span>Registrar venda</span></a>
 
-      <!-- [MOD] Relatórios agora sempre aparecem, independente do tipo de estabelecimento -->
+      <!-- [MOD] Link para cadastrar produto -->
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.cadastrar_produto' else '' }}" href="{{ url_for('main_bp.cadastrar_produto') }}"><span>Cadastrar produto</span></a>
+
+      <!-- [MOD] Relatórios sempre visíveis -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.relatorios' else '' }}" href="{{ url_for('main_bp.relatorios') }}"><span>{{ t('Reports') }}</span></a>
 
-      <!-- [MOD] Link direto para a tela de previsão -->
+      <!-- [MOD] Link direto para previsão -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_previsao' else '' }}" href="{{ url_for('main_bp.ver_previsao') }}"><span>{{ t('Forecast') }}</span></a>
 
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>{{ t('Stock') }}</span></a>

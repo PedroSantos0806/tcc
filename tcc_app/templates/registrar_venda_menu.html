@@ -1,27 +1,78 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ t('Register Sale') }} ({{ t('Menu') }})</h1>
 
-<section class="explicacao">
-  <h3>{{ t('How to read this page?') }}</h3>
+{# [MOD] Nova tela de registro de venda, com linhas dinâmicas de produtos #}
+
+<section class="page-header">
+  <h1>Registrar venda</h1>
   <p class="muted">
-    Selecione um item do menu e a quantidade vendida.
+    Selecione os produtos vendidos e a quantidade. O PrevSuite atualiza estoque e métricas automaticamente.
   </p>
 </section>
 
-<form method="POST" class="form-box">
-  <label>{{ t('Menu') }}</label>
-  <select name="menu_item_id" required>
-    <option value="">{{ t('Select...') }}</option>
-    {% for i in itens %}<option value="{{ i.id }}">{{ i.nome }}</option>{% endfor %}
-  </select>
+<section class="grid-2">
+  <article class="panel">
+    <h3>Dados da venda</h3>
+    <form method="post" id="form-venda" class="form-box" style="margin-top:10px;">
+      <label>
+        Data da venda*
+        <input type="date" name="data_venda" required>
+      </label>
 
-  <label>{{ t('Quantity') }}</label>
-  <input type="number" name="quantidade" min="1" step="1" required value="1">
+      <div class="sale-items-wrap">
+        <div class="sale-item-row">
+          <label style="width:100%;">
+            Produto
+            <select name="produto_id[]" required>
+              <option value="">Selecione um produto</option>
+              {% for p in produtos %}
+                <option value="{{ p.id }}">{{ p.nome }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label style="min-width:120px;">
+            Quantidade
+            <input type="number" name="quantidade[]" min="1" value="1" required>
+          </label>
+        </div>
+      </div>
 
-  <label>Data</label>
-  <input type="datetime-local" name="data_venda" required>
+      <button type="button" class="btn" onclick="addSaleRow()">Adicionar outro produto</button>
+      <button type="submit" style="margin-top:8px;">Registrar venda</button>
+    </form>
+  </article>
 
-  <button type="submit">{{ t('Save') }}</button>
-</form>
+  <article class="panel">
+    <h3>Dica</h3>
+    <p class="muted" style="margin-top:6px;">
+      Utilize esta tela sempre que realizar uma venda. Assim você acompanha:
+    </p>
+    <ul style="margin-top:10px; padding-left:18px; color:#475569; font-size:14px;">
+      <li>Quais produtos mais vendem;</li>
+      <li>Estoque atual em tempo real;</li>
+      <li>Receita e lucro por produto.</li>
+    </ul>
+  </article>
+</section>
+
+<script>
+  // [MOD] Script simples para adicionar novas linhas de produto
+  function addSaleRow() {
+    const wrap = document.querySelector('.sale-items-wrap');
+    const first = wrap.querySelector('.sale-item-row');
+    const clone = first.cloneNode(true);
+
+    // limpa valores
+    clone.querySelectorAll('select,input').forEach(el => {
+      if (el.tagName === 'SELECT') {
+        el.selectedIndex = 0;
+      } else {
+        el.value = el.name === 'quantidade[]' ? 1 : '';
+      }
+    });
+
+    wrap.appendChild(clone);
+  }
+</script>
+
 {% endblock %}

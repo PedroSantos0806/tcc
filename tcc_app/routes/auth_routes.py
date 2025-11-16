@@ -14,7 +14,8 @@ def _csv_path(name: str) -> str:
 
 def _find_user_in_csv(email: str):
     path = _csv_path('users.csv')
-    if not os.path.exists(path): return None
+    if not os.path.exists(path):
+        return None
     with open(path, encoding='utf-8') as f:
         for row in csv.DictReader(f):
             if (row.get('email', '') or '').strip().lower() == email.lower():
@@ -35,7 +36,8 @@ def _save_reset_token_mysql(email: str, token: str, minutes: int = 20) -> bool:
         )
         conn.commit()
         ok = cur.rowcount > 0
-        cur.close(); conn.close()
+        cur.close()
+        conn.close()
         return ok
     except Exception as e:
         print("Erro _save_reset_token_mysql:", e)
@@ -46,7 +48,8 @@ def _get_user_by_email_mysql(email: str):
     cur = conn.cursor(dictionary=True)
     cur.execute("SELECT * FROM usuarios WHERE email=%s", (email,))
     row = cur.fetchone()
-    cur.close(); conn.close()
+    cur.close()
+    conn.close()
     return row
 
 def _get_user_by_token_mysql(token: str):
@@ -54,7 +57,8 @@ def _get_user_by_token_mysql(token: str):
     cur = conn.cursor(dictionary=True)
     cur.execute("SELECT * FROM usuarios WHERE reset_token=%s", (token,))
     row = cur.fetchone()
-    cur.close(); conn.close()
+    cur.close()
+    conn.close()
     return row
 
 def _clear_token_mysql(user_id: int):
@@ -63,7 +67,8 @@ def _clear_token_mysql(user_id: int):
         cur = conn.cursor()
         cur.execute("UPDATE usuarios SET reset_token=NULL, reset_expires=NULL WHERE id=%s", (user_id,))
         conn.commit()
-        cur.close(); conn.close()
+        cur.close()
+        conn.close()
     except Exception as e:
         print("Erro _clear_token_mysql:", e)
 
@@ -71,7 +76,8 @@ def _clear_token_mysql(user_id: int):
 @auth_bp.route('/set_lang/<code>')
 def set_lang(code):
     code = (code or 'pt').lower()
-    if code not in ('pt', 'en', 'es'): code = 'pt'
+    if code not in ('pt', 'en', 'es'):
+        code = 'pt'
     session['lang'] = code
     ref = request.headers.get('Referer')
     return redirect(ref or url_for('auth_bp.login'))
@@ -146,7 +152,8 @@ def cadastro():
         senha = (request.form.get('senha') or '').strip()
         biz_type = (request.form.get('biz_type') or '').strip() or 'other'
         lang = (request.form.get('lang') or '').strip() or 'pt'
-        if lang not in ('pt','en','es'): lang = 'pt'
+        if lang not in ('pt', 'en', 'es'):
+            lang = 'pt'
 
         if not nome or not email or not senha:
             erro = 'Todos os campos são obrigatórios.'
@@ -167,24 +174,29 @@ def cadastro():
                         (nome, email, hash_senha, biz_type, 1)  # pode ativar verificação depois
                     )
                     conn.commit()
-                    cur.close(); conn.close()
+                    cur.close()
+                    conn.close()
 
                     # guarda idioma para aplicar no 1º login
                     session['lang_prefill'] = lang
 
-                    # e-mail de boas-vindas (best effort)
-                    send_email(
-                        email,
-                        "Bem-vindo(a) ao Prev Suite",
-                        f"""
-                        <div style="font-family:Arial,sans-serif">
-                          <h2>Bem-vindo(a), {nome}!</h2>
-                          <p>Seu cadastro no <strong>Prev Suite</strong> foi concluído com sucesso.</p>
-                          <p>Tipo de negócio: <strong>{biz_type}</strong></p>
-                          <p>Estamos à disposição. Bons negócios! 👋</p>
-                        </div>
-                        """
-                    )
+                    # [MOD] e-mail de boas-vindas em bloco try separado
+                    try:
+                        print(f"[MAIL] Enviando boas-vindas para {email}")
+                        send_email(
+                            email,
+                            "Bem-vindo(a) ao Prev Suite",
+                            f"""
+                            <div style="font-family:Arial,sans-serif">
+                              <h2>Bem-vindo(a), {nome}!</h2>
+                              <p>Seu cadastro no <strong>Prev Suite</strong> foi concluído com sucesso.</p>
+                              <p>Tipo de negócio: <strong>{biz_type}</strong></p>
+                              <p>Estamos à disposição. Bons negócios! 👋</p>
+                            </div>
+                            """
+                        )
+                    except Exception as mail_err:  # [MOD]
+                        print("Erro ao enviar e-mail de boas-vindas:", mail_err)
 
                     flash('Conta criada com sucesso! Faça login.')
                     return redirect(url_for('auth_bp.login'))
@@ -211,19 +223,26 @@ def esqueci_senha():
 
             token = _six_digit_token()
             if _save_reset_token_mysql(email, token, minutes=20):
-                send_email(
-                    email,
-                    "Código para resetar sua senha",
-                    f"""
-                    <div style="font-family:Arial,sans-serif">
-                      <p>Use este código para redefinir sua senha:</p>
-                      <p style="font-size:28px;font-weight:700;letter-spacing:4px">{token}</p>
-                      <p>O código expira em 20 minutos.</p>
-                    </div>
-                    """
-                )
-                session['reset_email'] = email  # para pré-preencher
-                return redirect(url_for('auth_bp.reset_confirm'))
+                # [MOD] envio de e-mail com tratamento de erro explícito
+                try:
+                    print(f"[MAIL] Enviando código de reset para {email} com token {token}")
+                    send_email(
+                        email,
+                        "Código para resetar sua senha",
+                        f"""
+                        <div style="font-family:Arial,sans-serif">
+                          <p>Use este código para redefinir sua senha:</p>
+                          <p style="font-size:28px;font-weight:700;letter-spacing:4px">{token}</p>
+                          <p>O código expira em 20 minutos.</p>
+                        </div>
+                        """
+                    )
+                    session['reset_email'] = email  # para pré-preencher
+                    return redirect(url_for('auth_bp.reset_confirm'))
+                except Exception as mail_err:
+                    print("Erro ao enviar e-mail de reset:", mail_err)
+                    flash('Não foi possível enviar o e-mail. Verifique a configuração de envio.')
+                    return redirect(url_for('auth_bp.esqueci_senha'))
             else:
                 flash('Erro ao gerar código. Tente novamente.')
                 return redirect(url_for('auth_bp.esqueci_senha'))
@@ -267,7 +286,8 @@ def reset_confirm():
                             (generate_password_hash(senha), usuario['id'])
                         )
                         conn.commit()
-                        cur.close(); conn.close()
+                        cur.close()
+                        conn.close()
                         _clear_token_mysql(usuario['id'])
                         session.pop('reset_email', None)
                         flash('Senha atualizada! Faça login.')
