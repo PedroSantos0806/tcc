@@ -1,48 +1,121 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ t('Dashboard') }}</h1>
-<p class="muted">{{ t('Login subtitle') }}</p>
 
-<div class="kpi-grid">
-  <div class="kpi-card">
-    <div class="kpi-title">{{ t('Weekly sales') }}</div>
-    <div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-title">{{ t('Weekly revenue') }}</div>
-    <div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-title">{{ t('Low stock items') }}</div>
-    <div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-title">{{ t('Out of stock items') }}</div>
-    <div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div>
-  </div>
-</div>
+<!-- [MOD] Dashboard em container escuro com cards em “vidro”, inspirado no layout do print -->
+<section class="dashboard-shell page-dashboard">
 
-<div class="welcome-banner">
-  <h3>Bem-vindo ao Prev Suite!</h3>
-  <p>{{ t('Start setup text') }}</p>
-  <div class="banner-actions">
-    {% if session.get('vertical') == 'restaurant' %}
-      <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">{{ t('Configure Menu') }}</a>
-      <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">{{ t('Manage Stock') }}</a>
-    {% else %}
-      <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">{{ t('Manage Stock') }}</a>
-    {% endif %}
-  </div>
-</div>
+  <header class="dash-header">
+    <div class="dash-header-left">
+      <h1 class="dash-title">{{ t('Dashboard') }}</h1>
+      <p class="dash-subtitle">{{ t('Login subtitle') }}</p>
+    </div>
+    <div class="dash-header-right">
+      <div class="dash-filter-group">
+        <label for="filtro-categoria" class="dash-label">Categoria</label>
+        <select id="filtro-categoria" class="dash-select">
+          <option value="">{{ 'Todas as categorias' }}</option>
+          {% for c in categorias %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <a href="{{ url_for('main_bp.cadastrar_venda') }}" class="btn dash-btn-primary">
+        Registrar venda
+      </a>
+    </div>
+  </header>
 
-<div class="cards-2col">
-  <div class="card big">
-    <h3>{{ t('Next week predictions') }}</h3>
-    <div class="empty-state"><div class="emoji">📦</div><p class="muted">{{ t('No suggestions now') }}</p></div>
-  </div>
-  <div class="card big">
-    <h3>{{ t('Stock alerts') }}</h3>
-    <div class="empty-state"><div class="emoji">⚠️</div><p class="muted">{{ t('No suggestions now') }}</p></div>
-  </div>
-</div>
+  <!-- KPIs principais -->
+  <section class="kpi-grid dash-kpis">
+    <article class="kpi-card dash-kpi-card">
+      <div class="kpi-title">{{ t('Weekly sales') }}</div>
+      <div class="kpi-value">{{ kpis.vendas_semana|fmt_int }}</div>
+      <p class="kpi-caption">Vendas registradas na semana atual.</p>
+    </article>
+
+    <article class="kpi-card dash-kpi-card">
+      <div class="kpi-title">{{ t('Weekly revenue') }}</div>
+      <div class="kpi-value">{{ kpis.receita_semana|fmt_money }}</div>
+      <p class="kpi-caption">Receita total considerando todos os produtos.</p>
+    </article>
+
+    <article class="kpi-card dash-kpi-card">
+      <div class="kpi-title">{{ t('Low stock items') }}</div>
+      <div class="kpi-value">{{ kpis.itens_baixo|fmt_int }}</div>
+      <p class="kpi-caption">Itens que já estão próximos de acabar.</p>
+    </article>
+
+    <article class="kpi-card dash-kpi-card">
+      <div class="kpi-title">{{ t('Out of stock items') }}</div>
+      <div class="kpi-value">{{ kpis.itens_falta|fmt_int }}</div>
+      <p class="kpi-caption">Produtos que estão sem estoque.</p>
+    </article>
+  </section>
+
+  <!-- Grid principal: gráfico + previsão -->
+  <section class="dash-main-grid">
+    <article class="panel dash-panel">
+      <header class="dash-panel-header">
+        <div>
+          <h3 class="dash-panel-title">Resumo de vendas e estoque</h3>
+          <p class="dash-panel-subtitle">Quantidade vendida, estoque atual, custo e lucro por produto.</p>
+        </div>
+      </header>
+      <div class="dash-panel-body">
+        <!-- Você pode conectar esse canvas ao /api/dashboard no main.js -->
+        <canvas id="chart-dashboard"></canvas>
+      </div>
+    </article>
+
+    <article class="panel dash-panel">
+      <header class="dash-panel-header">
+        <div>
+          <h3 class="dash-panel-title">Previsão de demanda (14 dias)</h3>
+          <p class="dash-panel-subtitle">Projeção de vendas diárias combinando tendência e sazonalidade.</p>
+        </div>
+      </header>
+      <div class="dash-panel-body">
+        <!-- E esse ao /api/previsao -->
+        <canvas id="chart-previsao"></canvas>
+      </div>
+    </article>
+  </section>
+
+  <!-- Segunda linha de cards: alertas e onboarding -->
+  <section class="dash-bottom-grid">
+    <article class="panel dash-panel">
+      <header class="dash-panel-header">
+        <div>
+          <h3 class="dash-panel-title">{{ t('Stock alerts') }}</h3>
+          <p class="dash-panel-subtitle">Produtos que merecem atenção especial.</p>
+        </div>
+      </header>
+      <div class="dash-panel-body">
+        <div class="dash-empty">
+          <div class="emoji">⚠️</div>
+          <p class="muted">{{ t('No suggestions now') }}</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel dash-panel">
+      <header class="dash-panel-header">
+        <div>
+          <h3 class="dash-panel-title">Comece configurando o PrevSuite</h3>
+          <p class="dash-panel-subtitle">Cadastre produtos e registre vendas para liberar todo o potencial da IA.</p>
+        </div>
+      </header>
+      <div class="dash-panel-body">
+        <div class="dash-onboarding-actions">
+          {% if session.get('vertical') == 'restaurant' %}
+            <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">Configurar cardápio</a>
+          {% endif %}
+          <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Gerenciar estoque</a>
+          <a class="btn ghost" href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar produto</a>
+        </div>
+      </div>
+    </article>
+  </section>
+
+</section>
 {% endblock %}
