@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import mysql.connector
 from flask import g
 
-# Carrega .env localmente; no Azure, usará App Settings
+# Carrega .env localmente; em produção, usa variáveis do ambiente
 load_dotenv()
 
 def _mysql_cfg():
@@ -18,7 +18,6 @@ def _mysql_cfg():
         "connection_timeout": 10,
         "raise_on_warnings": True,
     }
-    # SSL opcional (ex.: Azure MySQL pode exigir)
     ssl_ca = os.getenv("DB_SSL_CA")
     if ssl_ca and os.path.exists(ssl_ca):
         cfg["ssl_ca"] = ssl_ca

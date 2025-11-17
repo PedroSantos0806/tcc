@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-{# [MOD] Nova versão da tela de relatórios, com textos em PT-BR e barra corrigida #}
-
 <section class="page-header">
   <h1>Relatórios</h1>
   <p class="muted">Visão geral das vendas, custos e itens mais utilizados.</p>
 </section>
 
-{# [MOD] garante um denominador diferente de zero para a barra #}
 {% if consumo and consumo[0].uso_total > 0 %}
   {% set max_uso = consumo[0].uso_total %}
 {% else %}
@@ -17,19 +14,19 @@
 
 <div class="kpi-grid">
   <div class="kpi-card">
-    <div class="kpi-title">Total de vendas</div>   {# [MOD] antes: Total Sales #}
+    <div class="kpi-title">Total de vendas</div>
     <div class="kpi-value">{{ kpi.total_vendas|fmt_int }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Receita (itens vendidos)</div>  {# [MOD] antes: Revenue #}
+    <div class="kpi-title">Receita (itens vendidos)</div>
     <div class="kpi-value">{{ kpi.receita|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Custo total</div>  {# [MOD] antes: Total cost #}
+    <div class="kpi-title">Custo total</div>
     <div class="kpi-value">{{ kpi.custo_total|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Lucro estimado</div>  {# [MOD] antes: Estimated Profit #}
+    <div class="kpi-title">Lucro estimado</div>
     <div class="kpi-value">{{ (kpi.receita - kpi.custo_total)|fmt_money }}</div>
   </div>
 </div>
@@ -56,7 +53,6 @@
             </div>
           </div>
           <div class="usage-bar">
-            {# [MOD] em vez de style="width: ...", usamos data-width e JS define a largura #}
             <div class="usage-bar-fill"
                  data-width="{{ (item.uso_total / max_uso * 100)|round(0) }}"></div>
           </div>
@@ -71,7 +67,6 @@
   {% endif %}
 </section>
 
-{# [MOD] Script leve para aplicar a largura da barra usando o atributo data-width #}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var bars = document.querySelectorAll('.usage-bar-fill');

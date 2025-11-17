@@ -10,7 +10,7 @@
   <div class="auth-grid">
     <div class="login-card glass" role="form" aria-labelledby="signinTitle">
       <div class="login-logo">
-        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="PrevSuite" style="height:42px">
+        <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="Prev Suite" style="height:42px">
         <div class="login-title" id="signinTitle">{{ t('Sign in') }}</div>
       </div>
       <p class="login-sub">{{ t('Login subtitle') }}</p>
@@ -24,7 +24,7 @@
 
       <form method="POST" action="{{ url_for('auth_bp.login') }}" class="form-box" autocomplete="on" novalidate>
         <label for="email">{{ t('Email') }}</label>
-        <input class="input" id="email" name="email" type="email" required autofocus placeholder="demo@restaurant.com">
+        <input class="input" id="email" name="email" type="email" required autofocus placeholder="demo@empresa.com">
 
         <label for="senha">{{ t('Password') }}</label>
         <div class="password-row">

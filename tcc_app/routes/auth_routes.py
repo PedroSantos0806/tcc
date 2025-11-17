@@ -52,15 +52,6 @@ def _get_user_by_email_mysql(email: str):
     conn.close()
     return row
 
-def _get_user_by_token_mysql(token: str):
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM usuarios WHERE reset_token=%s", (token,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return row
-
 def _clear_token_mysql(user_id: int):
     try:
         conn = get_db_connection()
@@ -105,13 +96,12 @@ def login():
                 session['usuario_id'] = sess_id
                 session['usuario_nome'] = nome
                 session['usuario_email'] = email_
-                # vertical para esconder/mostrar menus
                 session['vertical'] = (biz_type or 'other')
                 if remember:
                     session.permanent = True
                 if session.get('lang_prefill') and not session.get('lang'):
                     session['lang'] = session.pop('lang_prefill')
-                return redirect(url_for('main_bp.home'))
+                return redirect(url_for('main_bp.dashboard'))
 
             if usuario_db:
                 if check_password_hash(usuario_db['senha'], senha):
@@ -137,7 +127,8 @@ def login():
                             uid = int(row.get('id') or 0) or 999999
                         except Exception:
                             uid = 999999
-                        return _do_login(uid, row.get('nome') or 'Usuário', row.get('email') or email, row.get('biz_type') or 'other')
+                        return _do_login(uid, row.get('nome') or 'Usuário',
+                                         row.get('email') or email, row.get('biz_type') or 'other')
                 if not erro:
                     erro = 'E-mail ou senha incorretos.'
     return render_template('login.html', erro=erro)
@@ -169,18 +160,16 @@ def cadastro():
                     erro = 'E-mail já cadastrado.'
                 else:
                     hash_senha = generate_password_hash(senha)
-                    cur.execute(
-                        "INSERT INTO usuarios (nome, email, senha, biz_type, email_verified) VALUES (%s, %s, %s, %s, %s)",
-                        (nome, email, hash_senha, biz_type, 1)  # pode ativar verificação depois
-                    )
+                    cur.execute("""
+                        INSERT INTO usuarios (nome, email, senha, biz_type, email_verified)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (nome, email, hash_senha, biz_type, 1))
                     conn.commit()
                     cur.close()
                     conn.close()
 
-                    # guarda idioma para aplicar no 1º login
                     session['lang_prefill'] = lang
 
-                    # [MOD] e-mail de boas-vindas em bloco try separado
                     try:
                         print(f"[MAIL] Enviando boas-vindas para {email}")
                         send_email(
@@ -195,7 +184,7 @@ def cadastro():
                             </div>
                             """
                         )
-                    except Exception as mail_err:  # [MOD]
+                    except Exception as mail_err:
                         print("Erro ao enviar e-mail de boas-vindas:", mail_err)
 
                     flash('Conta criada com sucesso! Faça login.')
@@ -205,7 +194,7 @@ def cadastro():
                 erro = 'Erro ao cadastrar usuário. Tente novamente.'
     return render_template('cadastro.html', erro=erro)
 
-# ---------------- Esqueci a senha (token por e-mail) ----------------
+# ---------------- Esqueci a senha ----------------
 @auth_bp.route('/esqueci_senha', methods=['GET', 'POST'])
 def esqueci_senha():
     if request.method == 'POST':
@@ -217,13 +206,11 @@ def esqueci_senha():
         try:
             usuario = _get_user_by_email_mysql(email)
             if not usuario:
-                # resposta neutra
                 flash('Se este e-mail existir no sistema, você receberá um código.')
                 return redirect(url_for('auth_bp.esqueci_senha'))
 
             token = _six_digit_token()
             if _save_reset_token_mysql(email, token, minutes=20):
-                # [MOD] envio de e-mail com tratamento de erro explícito
                 try:
                     print(f"[MAIL] Enviando código de reset para {email} com token {token}")
                     send_email(
@@ -237,7 +224,7 @@ def esqueci_senha():
                         </div>
                         """
                     )
-                    session['reset_email'] = email  # para pré-preencher
+                    session['reset_email'] = email
                     return redirect(url_for('auth_bp.reset_confirm'))
                 except Exception as mail_err:
                     print("Erro ao enviar e-mail de reset:", mail_err)
@@ -273,7 +260,6 @@ def reset_confirm():
                 if not usuario:
                     erro = 'Dados inválidos.'
                 else:
-                    # valida token e expiração
                     if not usuario.get('reset_token') or token != (usuario.get('reset_token') or ''):
                         erro = 'Código inválido.'
                     elif not usuario.get('reset_expires') or datetime.utcnow() > (usuario['reset_expires']):

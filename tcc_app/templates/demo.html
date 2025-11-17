@@ -1,32 +1,34 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="auth-hero" style="min-height:calc(100vh - 40px);">
+<section class="auth-hero">
   <div class="auth-hero-bg">
     <div class="bg-blob bg-blob-1"></div>
     <div class="bg-blob bg-blob-2"></div>
     <div class="bg-grid"></div>
   </div>
 
-  <div class="auth-grid" style="grid-template-columns:1fr;">
-    <div class="panel glass" style="max-width:980px; margin:0 auto;">
-      <h1 class="hero-title" style="margin-bottom:10px;">Preview do PrevFood</h1>
-      <p class="hero-sub">Veja como o produto fica após login — para dados reais, crie uma conta gratuita.</p>
-
-      <div class="grid-2" style="margin-top:16px;">
-        <div class="panel">
-          <h3>Dashboard</h3>
-          <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="Dashboard" style="width:100%; height:auto;">
-        </div>
-        <div class="panel">
-          <h3>Estoque</h3>
-          <img src="{{ url_for('static', filename='img/il-estoque.svg') }}" alt="Estoque" style="width:100%; height:auto;">
-        </div>
-      </div>
-
-      <div class="auth-cta" style="margin-top:16px;">
-        <a class="btn primary" href="{{ url_for('auth_bp.cadastro') }}">{{ t('Create free account') }}</a>
+  <div class="auth-grid">
+    <div class="auth-copy">
+      <h1 class="hero-title">
+        PrevSuite <span class="grad">by Aurora Tech</span>
+      </h1>
+      <p class="hero-sub">
+        SaaS de previsão de demanda com IA para pequenos negócios.  
+        Controle estoque, vendas, compras e lucros em uma única tela.
+      </p>
+      <ul class="auth-bullets">
+        <li>✔ Integração de produtos, vendas e estoque;</li>
+        <li>✔ Gráficos em tempo real e relatórios automáticos;</li>
+        <li>✔ Previsão de demanda em 14 dias com IA.</li>
+      </ul>
+      <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
+        <a class="btn primary" href="{{ url_for('auth_bp.cadastro') }}">{{ t('Start now') }}</a>
         <a class="btn ghost" href="{{ url_for('auth_bp.login') }}">{{ t('Sign in') }}</a>
       </div>
+    </div>
+
+    <div class="auth-illustration">
+      <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="PrevSuite dashboard">
     </div>
   </div>
 </section>

@@ -32,25 +32,14 @@
     <nav class="side-nav">
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.dashboard' else '' }}" href="{{ url_for('main_bp.dashboard') }}"><span>{{ t('Dashboard') }}</span></a>
 
-      {# Só mostra Menu/Shopping se vertical for RESTAURANT #}
-      {% if session.get('vertical') == 'restaurant' %}
-        <a class="side-link {{ 'active' if request.endpoint=='restaurant_bp.menu' else '' }}" href="{{ url_for('restaurant_bp.menu') }}"><span>{{ t('Menu') }}</span></a>
-        <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>{{ t('Shopping List') }}</span></a>
-      {% endif %}
-
-      <!-- [MOD] Link para registrar venda -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.cadastrar_venda' else '' }}" href="{{ url_for('main_bp.cadastrar_venda') }}"><span>Registrar venda</span></a>
-
-      <!-- [MOD] Link para cadastrar produto -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.cadastrar_produto' else '' }}" href="{{ url_for('main_bp.cadastrar_produto') }}"><span>Cadastrar produto</span></a>
 
-      <!-- [MOD] Relatórios sempre visíveis -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.relatorios' else '' }}" href="{{ url_for('main_bp.relatorios') }}"><span>{{ t('Reports') }}</span></a>
-
-      <!-- [MOD] Link direto para previsão -->
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_previsao' else '' }}" href="{{ url_for('main_bp.ver_previsao') }}"><span>{{ t('Forecast') }}</span></a>
-
+      <a class="side-link {{ 'active' if request.endpoint=='main_bp.lista_compras' else '' }}" href="{{ url_for('main_bp.lista_compras') }}"><span>{{ t('Shopping List') }}</span></a>
       <a class="side-link {{ 'active' if request.endpoint=='main_bp.ver_estoque' else '' }}" href="{{ url_for('main_bp.ver_estoque') }}"><span>{{ t('Stock') }}</span></a>
+
       <a class="side-link" href="{{ url_for('auth_bp.logout') }}"><span>{{ t('Logout') }}</span></a>
     </nav>
 

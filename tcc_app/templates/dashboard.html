@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- [MOD] Dashboard em container escuro com cards em “vidro”, inspirado no layout do print -->
 <section class="dashboard-shell page-dashboard">
 
   <header class="dash-header">
@@ -62,7 +61,6 @@
         </div>
       </header>
       <div class="dash-panel-body">
-        <!-- Você pode conectar esse canvas ao /api/dashboard no main.js -->
         <canvas id="chart-dashboard"></canvas>
       </div>
     </article>
@@ -75,7 +73,6 @@
         </div>
       </header>
       <div class="dash-panel-body">
-        <!-- E esse ao /api/previsao -->
         <canvas id="chart-previsao"></canvas>
       </div>
     </article>
@@ -107,15 +104,79 @@
       </header>
       <div class="dash-panel-body">
         <div class="dash-onboarding-actions">
-          {% if session.get('vertical') == 'restaurant' %}
-            <a class="btn primary" href="{{ url_for('restaurant_bp.menu') }}">Configurar cardápio</a>
-          {% endif %}
+          <a class="btn primary" href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar produtos</a>
           <a class="btn" href="{{ url_for('main_bp.ver_estoque') }}">Gerenciar estoque</a>
-          <a class="btn ghost" href="{{ url_for('main_bp.cadastrar_produto') }}">Cadastrar produto</a>
+          <a class="btn ghost" href="{{ url_for('main_bp.cadastrar_venda') }}">Registrar venda</a>
         </div>
       </div>
     </article>
   </section>
 
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const catSelect = document.getElementById('filtro-categoria');
+  const loadDash = async () => {
+    const cat = catSelect.value || '';
+    const res = await fetch(`/api/dashboard?categoria=${encodeURIComponent(cat)}`);
+    const data = await res.json();
+    const ctx = document.getElementById('chart-dashboard').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [
+          { label: 'Vendidos', data: data.vendidos, borderWidth: 1 },
+          { label: 'Em estoque', data: data.estoque, borderWidth: 1 },
+          { label: 'Custo total', data: data.custo, borderWidth: 1 },
+          { label: 'Lucro', data: data.lucro, borderWidth: 1 }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  };
+
+  const loadPrev = async () => {
+    const cat = catSelect.value || '';
+    const res = await fetch(`/api/previsao?categoria=${encodeURIComponent(cat)}`);
+    const data = await res.json();
+    const ctx = document.getElementById('chart-previsao').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [...data.labels_hist, ...data.labels_pred],
+        datasets: [
+          { label: 'Histórico', data: [...data.hist, ...Array(data.pred.length).fill(null)], borderWidth: 2 },
+          { label: 'Previsão', data: [...Array(data.hist.length).fill(null), ...data.pred], borderWidth: 2, borderDash:[6,6] }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  };
+
+  catSelect.addEventListener('change', () => { loadDash(); loadPrev(); });
+  loadDash();
+  loadPrev();
+});
+</script>
+
 {% endblock %}

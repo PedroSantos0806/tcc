@@ -5,6 +5,8 @@ from datetime import datetime
 
 # -------------------------------------------------
 # Idioma / i18n bem leve para templates
+# (mantido para compatibilidade, mas textos
+# ajustados para PrevSuite e IA)               # [MOD bloco]
 # -------------------------------------------------
 TRANSLATIONS = {
     "pt": {
@@ -16,7 +18,8 @@ TRANSLATIONS = {
         "enter": "Entrar",
         "forgot_password": "Esqueceu a senha?",
         "create_free": "Criar conta gratuita",
-        "hero_title": "Previsão de Demanda de verdade",
+        # [MOD] antes: "Previsão de Demanda de verdade"
+        "hero_title": "Previsão de demanda com IA com PrevSuite!",
         "hero_sub": "Relatórios, Estoque e Previsão com IA",
         "weekly_sales": "Vendas semanais",
         "weekly_revenue": "Receita semanal",
@@ -49,7 +52,8 @@ TRANSLATIONS = {
         "enter": "Enter",
         "forgot_password": "Forgot your password?",
         "create_free": "Create free account",
-        "hero_title": "True Demand Forecasting",
+        # [MOD] melhor alinhado com PT/ES e PrevSuite
+        "hero_title": "Demand forecasting with AI with PrevSuite!",
         "hero_sub": "Reports, Inventory and Forecast with AI",
         "weekly_sales": "Weekly sales",
         "weekly_revenue": "Weekly revenue",
@@ -82,7 +86,8 @@ TRANSLATIONS = {
         "enter": "Entrar",
         "forgot_password": "¿Olvidaste tu contraseña?",
         "create_free": "Crear cuenta gratuita",
-        "hero_title": "Pronóstico de Demanda real",
+        # [MOD] alinhado com PT/EN e PrevSuite
+        "hero_title": "Pronóstico de demanda con IA con PrevSuite!",
         "hero_sub": "Informes, Inventario y Pronóstico con IA",
         "weekly_sales": "Ventas semanales",
         "weekly_revenue": "Ingresos semanales",
@@ -138,19 +143,23 @@ def get_features_for(user):
     return FEATURES_BY_BUSINESS.get(tipo, FEATURES_BY_BUSINESS["outros"])
 
 # -------------------------------------------------
-# Decorador de login (já existia; mantido)
+# Decorador de login (ajustado para usar usuario_id
+# e o blueprint auth_bp.login)                     # [MOD bloco]
 # -------------------------------------------------
 def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
-        if not session.get("user_id"):
-            return redirect(url_for("auth.login", next=request.path))
+        # [MOD] antes: session.get("user_id")
+        if not session.get("usuario_id"):
+            # [MOD] antes: url_for("auth.login", ...)
+            return redirect(url_for("auth_bp.login", next=request.path))
         return view(**kwargs)
     return wrapped_view
 
 # -------------------------------------------------
 # Contexto comum nos templates
-# (chamado no app/__init__.py ou no blueprint principal)
+# (atualmente não está sendo registrado em create_app,
+# mas mantido por compatibilidade se você quiser usar) # [INFO]
 # -------------------------------------------------
 def inject_template_globals(app):
     @app.context_processor

@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-{# [MOD] Nova tela de cadastro de produto, com layout mais moderno #}
-
 <section class="page-header">
   <h1>Cadastrar produto</h1>
   <p class="muted">
@@ -26,15 +24,15 @@
 
       <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;">
         <label>
-          Preço de custo (R$)*
+          Preço de custo (R$)*  
           <input type="number" step="0.01" min="0" name="preco_custo" required placeholder="Ex: 10,00">
         </label>
         <label>
-          Preço de venda (R$)*
+          Preço de venda (R$)* 
           <input type="number" step="0.01" min="0" name="preco_venda" required placeholder="Ex: 29,90">
         </label>
         <label>
-          Quantidade em estoque*
+          Quantidade em estoque* 
           <input type="number" min="0" name="quantidade" required placeholder="Ex: 50">
         </label>
       </div>

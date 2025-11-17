@@ -1,8 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Importar CSV para o MySQL</h1>
-<p>Coloque <code>users.csv</code>, <code>products.csv</code>, <code>sales.csv</code> e <code>items.csv</code> em <code>tcc_app/instance/data/</code>. Depois clique no botão abaixo.</p>
-<form method="POST">
-  <button type="submit">Importar agora</button>
-</form>
+<section class="page-header">
+  <h1>Importar dados CSV (admin)</h1>
+  <p class="muted">
+    Essa ação importa usuários, produtos e vendas dos arquivos CSV em <code>instance/data</code>.
+  </p>
+</section>
+
+<article class="panel">
+  <p class="muted">
+    Certifique-se de que os arquivos <strong>users.csv</strong>, <strong>products.csv</strong>, 
+    <strong>sales.csv</strong> e <strong>items.csv</strong> estejam na pasta correta antes de continuar.
+  </p>
+
+  <form method="POST" style="margin-top:16px;">
+    <button class="btn primary" type="submit">Rodar importação</button>
+  </form>
+</article>
 {% endblock %}

@@ -8,10 +8,13 @@ def obter_usuario_por_email(email):
     cursor.close()
     return usuario
 
-def inserir_usuario(nome, email, senha):
+def inserir_usuario(nome, email, senha_hash, biz_type="other"):
     db = get_db_connection()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO usuarios (nome, email, senha) VALUES (%s, %s, %s)", (nome, email, senha))
+    cursor.execute("""
+        INSERT INTO usuarios (nome, email, senha, biz_type, email_verified)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (nome, email, senha_hash, biz_type, 1))
     db.commit()
     cursor.close()
 
@@ -28,7 +31,8 @@ def obter_estoque_com_vendas(usuario_id):
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
         SELECT p.*,
-               GREATEST(p.quantidade - COALESCE((
+               GREATEST(
+                 p.quantidade - COALESCE((
                    SELECT SUM(iv.quantidade)
                    FROM itens_venda iv
                    JOIN vendas v ON v.id = iv.venda_id

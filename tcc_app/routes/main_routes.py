@@ -4,173 +4,7 @@ import csv, os, datetime as dt
 
 main_bp = Blueprint('main_bp', __name__)
 
-# ===================== i18n (leve) =====================
-I18N = {
-    "pt": {
-        # Navegação / comuns
-        "Dashboard": "Dashboard",
-        "Menu": "Menu",
-        "Stock": "Estoque",
-        "Shopping List": "Lista de Compras",
-        "Reports": "Relatórios",
-        "Logout": "Sair",
-        "Sign in": "Entrar",
-        "Email": "E-mail",
-        "Password": "Senha",
-        "Remember me": "Lembrar de mim",
-        "Forgot password?": "Esqueceu a senha?",
-        "Create free account": "Criar conta gratuita",
-        "Or": "ou",
-        "Start now": "Começar agora",
-        "See demo": "Ver demo",
-        "Real demand forecasting": "Previsão de Demanda de verdade",
-        "Login subtitle": "Acesse sua conta para gerenciar estoque, vendas e previsões com IA.",
-        "Trusted line": "Relatórios, Estoque e Previsão com IA",
-        # Onboarding
-        "Onboarding Title": "Conte sobre o seu negócio",
-        "Onboarding Subtitle": "Personalizamos o PrevSuite conforme seu segmento.",
-        "Business Type": "Tipo de estabelecimento",
-        "Restaurant": "Restaurante / Lanchonete",
-        "Retail": "Varejo (moda, calçados, etc.)",
-        "Bakery": "Padaria / Confeitaria",
-        "Pharmacy": "Farmácia",
-        "Market": "Mercado / Mercearia",
-        "Other": "Outro",
-        "Preferred Language": "Idioma preferido",
-        "Portuguese": "Português (Brasil)",
-        "English": "Inglês",
-        "Spanish": "Espanhol",
-        "Save and continue": "Salvar e continuar",
-        "Profile saved": "Preferências salvas!",
-        "Name": "Nome",
-        "Sign up": "Criar conta",
-        "Have account?": "Já tem conta?",
-        "Sign in now": "Entrar agora",
-
-        # ==== (NOVAS) KPIs / dashboard / banner ====
-        "Weekly sales": "Vendas semanais",
-        "Weekly revenue": "Receita semanal",
-        "Low stock items": "Itens com pouco estoque",
-        "Out of stock items": "Itens sem estoque",
-
-        "Start setup text": "Comece configurando seu estoque e suas categorias.",
-        "Configure Menu": "Configurar Cardápio",
-        "Manage Stock": "Gerenciar Estoque",
-        "Next week predictions": "Previsões para a próxima semana",
-        "No suggestions now": "Sem sugestões no momento",
-        "Stock alerts": "Alertas de estoque",
-    },
-    "en": {
-        "Dashboard": "Dashboard",
-        "Menu": "Menu",
-        "Stock": "Stock",
-        "Shopping List": "Shopping List",
-        "Reports": "Reports",
-        "Logout": "Logout",
-        "Sign in": "Sign in",
-        "Email": "Email",
-        "Password": "Password",
-        "Remember me": "Remember me",
-        "Forgot password?": "Forgot password?",
-        "Create free account": "Create free account",
-        "Or": "or",
-        "Start now": "Start now",
-        "See demo": "See demo",
-        "Real demand forecasting": "Real demand forecasting",
-        "Login subtitle": "Access your account to manage inventory, sales and AI forecasts.",
-        "Trusted line": "Reports, Inventory and AI Forecasting",
-        "Onboarding Title": "Tell us about your business",
-        "Onboarding Subtitle": "We personalize PrevSuite by your segment.",
-        "Business Type": "Business type",
-        "Restaurant": "Restaurant / Diner",
-        "Retail": "Retail (fashion, shoes, etc.)",
-        "Bakery": "Bakery / Pastry",
-        "Pharmacy": "Pharmacy",
-        "Market": "Grocery / Market",
-        "Other": "Other",
-        "Preferred Language": "Preferred language",
-        "Portuguese": "Portuguese (Brazil)",
-        "English": "English",
-        "Spanish": "Spanish",
-        "Save and continue": "Save and continue",
-        "Profile saved": "Preferences saved!",
-        "Name": "Name",
-        "Sign up": "Create account",
-        "Have account?": "Already have an account?",
-        "Sign in now": "Sign in now",
-
-        "Weekly sales": "Weekly sales",
-        "Weekly revenue": "Weekly revenue",
-        "Low stock items": "Low stock items",
-        "Out of stock items": "Out of stock items",
-
-        "Start setup text": "Start by setting up your inventory and categories.",
-        "Configure Menu": "Configure Menu",
-        "Manage Stock": "Manage Stock",
-        "Next week predictions": "Next week predictions",
-        "No suggestions now": "No suggestions now",
-        "Stock alerts": "Stock alerts",
-    },
-    "es": {
-        "Dashboard": "Panel",
-        "Menu": "Menú",
-        "Stock": "Inventario",
-        "Shopping List": "Lista de Compras",
-        "Reports": "Informes",
-        "Logout": "Salir",
-        "Sign in": "Iniciar sesión",
-        "Email": "Correo",
-        "Password": "Contraseña",
-        "Remember me": "Recordarme",
-        "Forgot password?": "¿Olvidó la contraseña?",
-        "Create free account": "Crear cuenta gratis",
-        "Or": "o",
-        "Start now": "Empezar ahora",
-        "See demo": "Ver demo",
-        "Real demand forecasting": "Pronóstico de demanda real",
-        "Login subtitle": "Accede para gestionar inventario, ventas y pronósticos con IA.",
-        "Trusted line": "Informes, Inventario y Pronóstico con IA",
-        "Onboarding Title": "Cuéntanos sobre tu negocio",
-        "Onboarding Subtitle": "Personalizamos PrevSuite según tu segmento.",
-        "Business Type": "Tipo de negocio",
-        "Restaurant": "Restaurante / Cafetería",
-        "Retail": "Retail (moda, calzado, etc.)",
-        "Bakery": "Panadería / Pastelería",
-        "Pharmacy": "Farmacia",
-        "Market": "Mercado / Tienda",
-        "Other": "Otro",
-        "Preferred Language": "Idioma preferido",
-        "Portuguese": "Portugués (Brasil)",
-        "English": "Inglés",
-        "Spanish": "Español",
-        "Save and continue": "Guardar y continuar",
-        "Profile saved": "¡Preferencias guardadas!",
-        "Name": "Nombre",
-        "Sign up": "Crear cuenta",
-        "Have account?": "¿Ya tienes cuenta?",
-        "Sign in now": "Iniciar ahora",
-
-        "Weekly sales": "Ventas semanales",
-        "Weekly revenue": "Ingresos semanales",
-        "Low stock items": "Ítems con poco stock",
-        "Out of stock items": "Ítems sin stock",
-
-        "Start setup text": "Comienza configurando tu inventario y categorías.",
-        "Configure Menu": "Configurar Menú",
-        "Manage Stock": "Administrar Inventario",
-        "Next week predictions": "Predicciones para la próxima semana",
-        "No suggestions now": "Sin sugerencias por ahora",
-        "Stock alerts": "Alertas de stock",
-    }
-}
-
-@main_bp.app_context_processor
-def inject_i18n():
-    lang = session.get('lang', 'pt')
-    def t(key): return I18N.get(lang, I18N["pt"]).get(key, key)
-    return dict(t=t, lang=lang)
-
-# ===================== CSV helpers =====================
+# ===================== CSV helpers (demo/importador) =====================
 def _csv_path(name):
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'instance', 'data', name)
 
@@ -205,10 +39,13 @@ def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
 
     agg = {}
     for p in products:
-        agg[p['id']] = {"nome": p['nome'], "qtd_inicial": int(p.get('quantidade') or 0),
-                        "preco_custo": float(p.get('preco_custo') or 0),
-                        "preco_venda": float(p.get('preco_venda') or 0),
-                        "vendidos": 0, "custo_total": 0.0, "receita_total": 0.0}
+        agg[p['id']] = {
+            "nome": p['nome'],
+            "qtd_inicial": int(p.get('quantidade') or 0),
+            "preco_custo": float(p.get('preco_custo') or 0),
+            "preco_venda": float(p.get('preco_venda') or 0),
+            "vendidos": 0, "custo_total": 0.0, "receita_total": 0.0
+        }
     for it in items:
         pid = it.get('produto_id')
         if pid in agg:
@@ -218,8 +55,13 @@ def _csv_dashboard_rows(uid_db, email, categoria_sel=None):
             agg[pid]["receita_total"] += q * pu
             agg[pid]["custo_total"]   += q * agg[pid]["preco_custo"]
 
-    return [{"nome": p["nome"], "qtd_vendida": p["vendidos"], "qtd_inicial": p["qtd_inicial"],
-             "custo_total": p["custo_total"], "receita_total": p["receita_total"]} for p in agg.values()]
+    return [{
+        "nome": p["nome"],
+        "qtd_vendida": p["vendidos"],
+        "qtd_inicial": p["qtd_inicial"],
+        "custo_total": p["custo_total"],
+        "receita_total": p["receita_total"]
+    } for p in agg.values()]
 
 def _csv_previsao_series(email, categoria_sel=None):
     u_csv_id = _csv_user_id_for_email(email)
@@ -279,9 +121,12 @@ def _kpis_semana(uid):
         if est > 0 and est <= max(1, int(0.2 * ini)): baixo += 1
 
     cur.close(); conn.close()
-    return {"vendas_semana": int(r["vendas"] or 0),
-            "receita_semana": float(r["receita"] or 0.0),
-            "itens_baixo": baixo, "itens_falta": falta}
+    return {
+        "vendas_semana": int(r["vendas"] or 0),
+        "receita_semana": float(r["receita"] or 0.0),
+        "itens_baixo": baixo,
+        "itens_falta": falta
+    }
 
 @main_bp.route('/')
 def home():
@@ -305,11 +150,15 @@ def cadastrar_produto():
             conn = get_db_connection(); cur = conn.cursor()
             preco_base = f.get('preco') or f.get('preco_custo')
             cur.execute("""
-                INSERT INTO produtos (nome,preco,preco_custo,preco_venda,quantidade,categoria,subcategoria,tamanho,data_chegada,usuario_id)
+                INSERT INTO produtos
+                  (nome, preco, preco_custo, preco_venda, quantidade,
+                   categoria, subcategoria, tamanho, data_chegada, usuario_id)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (f['nome'], preco_base, f['preco_custo'], f['preco_venda'], f['quantidade'],
-                  f['categoria'], f.get('subcategoria') or None, f.get('tamanho') or None,
-                  f['data_chegada'], session['usuario_id']))
+            """, (
+                f['nome'], preco_base, f['preco_custo'], f['preco_venda'],
+                f['quantidade'], f['categoria'], f.get('subcategoria') or None,
+                f.get('tamanho') or None, f['data_chegada'], session['usuario_id']
+            ))
             conn.commit()
             cur.close(); conn.close()
             flash('Produto cadastrado com sucesso!')
@@ -408,8 +257,12 @@ def ver_estoque():
             "em_estoque": int(em_estoque), "perc_vendido": perc_vendido, "status": status
         })
 
-    kpis = {"produtos": len(tabela), "itens": int(total_itens),
-            "valor_custo": round(total_custo, 2), "valor_venda": round(total_venda, 2)}
+    kpis = {
+        "produtos": len(tabela),
+        "itens": int(total_itens),
+        "valor_custo": round(total_custo, 2),
+        "valor_venda": round(total_venda, 2)
+    }
     return render_template('ver_estoque.html', produtos=tabela, categorias=categorias,
                            categoria_selecionada=categoria_sel, kpis=kpis)
 
@@ -606,11 +459,13 @@ def import_csv():
                 for row in r:
                     cur.execute("""
                         REPLACE INTO produtos
-                        (id, nome, preco, preco_custo, preco_venda, quantidade, categoria, subcategoria, tamanho, data_chegada, usuario_id)
+                        (id, nome, preco, preco_custo, preco_venda, quantidade,
+                         categoria, subcategoria, tamanho, data_chegada, usuario_id)
                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    """, (row['id'], row['nome'], row['preco'], row['preco_custo'], row['preco_venda'],
-                          row['quantidade'], row['categoria'] or None, row['subcategoria'] or None,
-                          row['tamanho'] or None, row['data_chegada'] or None, row['usuario_id']))
+                    """, (row['id'], row['nome'], row['preco'], row['preco_custo'],
+                          row['preco_venda'], row['quantidade'], row['categoria'] or None,
+                          row['subcategoria'] or None, row['tamanho'] or None,
+                          row['data_chegada'] or None, row['usuario_id']))
 
         if os.path.exists(sales):
             with open(sales, encoding='utf-8') as f:
@@ -627,9 +482,11 @@ def import_csv():
                 r = csv.DictReader(f)
                 for row in r:
                     cur.execute("""
-                        REPLACE INTO itens_venda (id, venda_id, produto_id, quantidade, preco_unitario)
+                        REPLACE INTO itens_venda
+                          (id, venda_id, produto_id, quantidade, preco_unitario)
                         VALUES (%s,%s,%s,%s,%s)
-                    """, (row['id'], row['venda_id'], row['produto_id'], row['quantidade'], row['preco_unitario']))
+                    """, (row['id'], row['venda_id'], row['produto_id'],
+                          row['quantidade'], row['preco_unitario']))
 
         conn.commit()
         cur.close(); conn.close()
@@ -642,7 +499,7 @@ def import_csv():
         return redirect(url_for('main_bp.home'))
     return render_template('admin_import.html')
 
-# =============== LISTA DE COMPRAS (compatível MySQL 5.7+) ===============
+# =============== LISTA DE COMPRAS (MySQL) ===============
 @main_bp.route('/lista_compras', methods=['GET'])
 def lista_compras():
     if 'usuario_id' not in session:
@@ -702,7 +559,7 @@ def lista_compras():
                            itens=itens, total=round(total,2),
                            margem=int(margem), horizonte=horizonte)
 
-# =============== RELATÓRIOS (estável) ===============
+# =============== RELATÓRIOS ===============
 @main_bp.route('/relatorios', methods=['GET'])
 def relatorios():
     if 'usuario_id' not in session:
@@ -711,7 +568,6 @@ def relatorios():
 
     conn = get_db_connection(); cur = conn.cursor(dictionary=True)
 
-    # KPIs agregados
     cur.execute("""
         SELECT
             COUNT(DISTINCT v.id) AS total_vendas,
@@ -729,7 +585,6 @@ def relatorios():
         "custo_total": float(k.get("custo_total") or 0.0)
     }
 
-    # Consumo últimos 28 dias por produto
     cur.execute("""
         SELECT
             p.id,
@@ -760,20 +615,21 @@ def relatorios():
 
     return render_template('relatorios.html', kpi=kpi, consumo=consumo)
 
-# =============== ONBOARDING (ajustado) ===============
+# =============== ONBOARDING ===============
 @main_bp.route('/onboarding', methods=['GET', 'POST'])
 def onboarding():
     if 'usuario_id' not in session:
         return redirect(url_for('auth_bp.login'))
 
+    lang = session.get('lang', 'pt')
+
     if request.method == 'POST':
         biz_type = (request.form.get('biz_type') or '').strip() or 'other'
         lang = (request.form.get('lang') or '').strip() or 'pt'
         if lang not in ('pt', 'en', 'es'): lang = 'pt'
-        # >>> usar a mesma chave que o base.html consulta:
         session['vertical'] = biz_type
         session['lang'] = lang
-        flash(I18N[lang]["Profile saved"])
+        flash("Preferências salvas!")
         return redirect(url_for('main_bp.dashboard'))
 
-    return render_template('onboarding.html')
+    return render_template('onboarding.html', lang=lang)

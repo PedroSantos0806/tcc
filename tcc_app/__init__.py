@@ -34,25 +34,21 @@ def create_app():
     from .db import init_app as init_db
     init_db(app)
 
-    # filtros
+    # Filtros Jinja
     app.jinja_env.filters["fmt_int"] = _fmt_int
     app.jinja_env.filters["fmt_money"] = _fmt_money
     app.jinja_env.filters["fmt_date"] = _fmt_date
 
-    # i18n
+    # i18n centralizado
     from .i18n import inject_i18n
     inject_i18n(app)
 
-    # Blueprints
+    # Blueprints (apenas os usados)
     from .routes.auth_routes import auth_bp
     from .routes.main_routes import main_bp
-    from .routes.restaurant_routes import restaurant_bp
-    from .routes.relatorios_routes import relatorios_bp  # << add
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(restaurant_bp, url_prefix="")
-    app.register_blueprint(relatorios_bp)  # << add
 
     @app.route("/health")
     def health():
