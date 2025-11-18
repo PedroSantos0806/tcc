@@ -2,8 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from tcc_app.db import get_db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
 from tcc_app.mailer import send_email
-from datetime import datetime, timedelta
-import os, csv, random, string
+import os, csv
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -23,26 +22,6 @@ def _find_user_in_csv(email: str):
     return None
 
 # ---------------- Helpers ----------------
-def _six_digit_token():
-    return ''.join(random.choices(string.digits, k=6))
-
-def _save_reset_token_mysql(email: str, token: str, minutes: int = 20) -> bool:
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE usuarios SET reset_token=%s, reset_expires=%s WHERE email=%s",
-            (token, datetime.utcnow() + timedelta(minutes=minutes), email)
-        )
-        conn.commit()
-        ok = cur.rowcount > 0
-        cur.close()
-        conn.close()
-        return ok
-    except Exception as e:
-        print("Erro _save_reset_token_mysql:", e)
-        return False
-
 def _get_user_by_email_mysql(email: str):
     conn = get_db_connection()
     cur = conn.cursor(dictionary=True)
@@ -51,17 +30,6 @@ def _get_user_by_email_mysql(email: str):
     cur.close()
     conn.close()
     return row
-
-def _clear_token_mysql(user_id: int):
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("UPDATE usuarios SET reset_token=NULL, reset_expires=NULL WHERE id=%s", (user_id,))
-        conn.commit()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        print("Erro _clear_token_mysql:", e)
 
 # ---------------- Idiomas ----------------
 @auth_bp.route('/set_lang/<code>')
@@ -194,94 +162,51 @@ def cadastro():
                 erro = 'Erro ao cadastrar usuário. Tente novamente.'
     return render_template('cadastro.html', erro=erro)
 
-# ---------------- Esqueci a senha ----------------
+# ---------------- Esqueci a senha (AGORA: redefinição direta, sem token) ----------------
 @auth_bp.route('/esqueci_senha', methods=['GET', 'POST'])
 def esqueci_senha():
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip()
-        if not email:
-            flash('Informe um e-mail.')
+        senha = (request.form.get('senha') or '').strip()
+        confirma = (request.form.get('confirmar_senha') or '').strip()
+
+        if not email or not senha or not confirma:
+            flash('Preencha todos os campos.')
+            return redirect(url_for('auth_bp.esqueci_senha'))
+
+        if len(senha) < 6:
+            flash('A nova senha deve ter no mínimo 6 caracteres.')
+            return redirect(url_for('auth_bp.esqueci_senha'))
+
+        if senha != confirma:
+            flash('As senhas não coincidem.')
             return redirect(url_for('auth_bp.esqueci_senha'))
 
         try:
-            usuario = _get_user_by_email_mysql(email)
-            if not usuario:
-                flash('Se este e-mail existir no sistema, você receberá um código.')
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE usuarios SET senha=%s WHERE email=%s",
+                (generate_password_hash(senha), email)
+            )
+            conn.commit()
+            linhas = cur.rowcount
+            cur.close()
+            conn.close()
+
+            if linhas == 0:
+                flash('Nenhum usuário encontrado com este e-mail.')
                 return redirect(url_for('auth_bp.esqueci_senha'))
 
-            token = _six_digit_token()
-            if _save_reset_token_mysql(email, token, minutes=20):
-                try:
-                    print(f"[MAIL] Enviando código de reset para {email} com token {token}")
-                    send_email(
-                        email,
-                        "Código para resetar sua senha",
-                        f"""
-                        <div style="font-family:Arial,sans-serif">
-                          <p>Use este código para redefinir sua senha:</p>
-                          <p style="font-size:28px;font-weight:700;letter-spacing:4px">{token}</p>
-                          <p>O código expira em 20 minutos.</p>
-                        </div>
-                        """
-                    )
-                    session['reset_email'] = email
-                    return redirect(url_for('auth_bp.reset_confirm'))
-                except Exception as mail_err:
-                    print("Erro ao enviar e-mail de reset:", mail_err)
-                    flash('Não foi possível enviar o e-mail. Verifique a configuração de envio.')
-                    return redirect(url_for('auth_bp.esqueci_senha'))
-            else:
-                flash('Erro ao gerar código. Tente novamente.')
-                return redirect(url_for('auth_bp.esqueci_senha'))
+            flash('Senha atualizada com sucesso! Faça login com a nova senha.')
+            return redirect(url_for('auth_bp.login'))
 
         except Exception as e:
-            print("Erro ao processar esqueci_senha:", e)
-            flash('Erro ao processar. Tente novamente.')
+            print("Erro ao atualizar senha (esqueci_senha):", e)
+            flash('Erro ao atualizar senha. Tente novamente.')
             return redirect(url_for('auth_bp.esqueci_senha'))
 
     return render_template('esqueci_senha.html')
-
-@auth_bp.route('/reset/confirm', methods=['GET', 'POST'])
-def reset_confirm():
-    erro = None
-    email_prefill = session.get('reset_email') or ''
-    if request.method == 'POST':
-        email = (request.form.get('email') or '').strip()
-        token = (request.form.get('token') or '').strip()
-        senha = (request.form.get('senha') or '').strip()
-
-        if not email or not token or not senha:
-            erro = 'Preencha todos os campos.'
-        elif len(senha) < 6:
-            erro = 'A nova senha deve ter no mínimo 6 caracteres.'
-        else:
-            try:
-                usuario = _get_user_by_email_mysql(email)
-                if not usuario:
-                    erro = 'Dados inválidos.'
-                else:
-                    if not usuario.get('reset_token') or token != (usuario.get('reset_token') or ''):
-                        erro = 'Código inválido.'
-                    elif not usuario.get('reset_expires') or datetime.utcnow() > (usuario['reset_expires']):
-                        erro = 'Código expirado.'
-                    else:
-                        conn = get_db_connection()
-                        cur = conn.cursor()
-                        cur.execute(
-                            "UPDATE usuarios SET senha=%s WHERE id=%s",
-                            (generate_password_hash(senha), usuario['id'])
-                        )
-                        conn.commit()
-                        cur.close()
-                        conn.close()
-                        _clear_token_mysql(usuario['id'])
-                        session.pop('reset_email', None)
-                        flash('Senha atualizada! Faça login.')
-                        return redirect(url_for('auth_bp.login'))
-            except Exception as e:
-                print("Erro reset_confirm:", e)
-                erro = 'Erro ao atualizar senha. Tente novamente.'
-    return render_template('reset_confirm.html', erro=erro, email_prefill=email_prefill)
 
 # ---------------- Logout ----------------
 @auth_bp.route('/logout')

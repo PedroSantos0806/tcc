@@ -11,9 +11,11 @@
     <div class="login-card glass" role="form" aria-labelledby="forgotTitle">
       <div class="login-logo">
         <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="Prev Suite">
-        <div class="login-title" id="forgotTitle">Esqueceu a senha</div>
+        <div class="login-title" id="forgotTitle">{{ t('Reset password') }}</div>
       </div>
-      <p class="login-sub">Informe seu e-mail. Vamos enviar um <strong>código de 6 dígitos</strong> para confirmar sua identidade.</p>
+      <p class="login-sub">
+        {{ t('Reset password subtitle') }}
+      </p>
 
       {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -24,19 +26,28 @@
       {% endwith %}
 
       <form method="POST" class="form-box" autocomplete="on">
-        <label for="email">E-mail</label>
+        <label for="email">{{ t('Email') }}</label>
         <input id="email" name="email" type="email" required placeholder="voce@empresa.com">
-        <button class="btn primary block" type="submit">Enviar código</button>
+
+        <label for="senha">{{ t('New password') }}</label>
+        <input id="senha" name="senha" type="password" required minlength="6" placeholder="••••••••">
+
+        <label for="confirmar_senha">{{ t('Confirm new password') }}</label>
+        <input id="confirmar_senha" name="confirmar_senha" type="password" required minlength="6" placeholder="••••••••">
+
+        <button class="btn primary block" type="submit">{{ t('Change password') }}</button>
       </form>
 
       <div style="margin-top:10px;text-align:center;">
-        <a class="link" href="{{ url_for('auth_bp.login') }}">Voltar ao login</a>
+        <a class="link" href="{{ url_for('auth_bp.login') }}">{{ t('Back to login') }}</a>
       </div>
     </div>
 
     <div class="auth-copy">
-      <h1 class="hero-title">Recuperar acesso</h1>
-      <p class="hero-sub">Segurança por token com expiração.</p>
+      <h1 class="hero-title">{{ t('Reset password') }}</h1>
+      <p class="hero-sub">
+        Para o TCC, usamos um fluxo simplificado de redefinição direta na aplicação.
+      </p>
       <div class="auth-illustration">
         <img src="{{ url_for('static', filename='img/il-dashboard.svg') }}" alt="">
       </div>

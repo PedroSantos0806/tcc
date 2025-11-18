@@ -2,8 +2,8 @@
 {% block content %}
 
 <section class="page-header">
-  <h1>Relatórios</h1>
-  <p class="muted">Visão geral das vendas, custos e itens mais utilizados.</p>
+  <h1>{{ t('Reports') }}</h1>
+  <p class="muted">{{ t('Reports subtitle') }}</p>
 </section>
 
 {% if consumo and consumo[0].uso_total > 0 %}
@@ -14,27 +14,27 @@
 
 <div class="kpi-grid">
   <div class="kpi-card">
-    <div class="kpi-title">Total de vendas</div>
+    <div class="kpi-title">{{ t('Total sales') }}</div>
     <div class="kpi-value">{{ kpi.total_vendas|fmt_int }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Receita (itens vendidos)</div>
+    <div class="kpi-title">{{ t('Revenue (sold items)') }}</div>
     <div class="kpi-value">{{ kpi.receita|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Custo total</div>
+    <div class="kpi-title">{{ t('Total cost') }}</div>
     <div class="kpi-value">{{ kpi.custo_total|fmt_money }}</div>
   </div>
   <div class="kpi-card">
-    <div class="kpi-title">Lucro estimado</div>
+    <div class="kpi-title">{{ t('Estimated profit') }}</div>
     <div class="kpi-value">{{ (kpi.receita - kpi.custo_total)|fmt_money }}</div>
   </div>
 </div>
 
 <section style="margin-top:18px;">
-  <h3 style="margin-bottom:8px;">Uso de itens nos últimos 28 dias</h3>
+  <h3 style="margin-bottom:8px;">{{ t('Usage last 28 days') }}</h3>
   <p class="muted" style="margin-bottom:12px;">
-    Lista dos produtos mais utilizados, com quantidade total e custo associado.
+    {{ t('Usage subtitle') }}
   </p>
 
   {% if consumo %}
@@ -49,7 +49,7 @@
               </span>
             </div>
             <div class="badge badge-info">
-              Custo {{ item.custo_total|fmt_money }}
+              {{ t('Cost') }} {{ item.custo_total|fmt_money }}
             </div>
           </div>
           <div class="usage-bar">
@@ -62,7 +62,7 @@
   {% else %}
     <div class="panel panel-empty">
       <div class="emoji">📊</div>
-      <p class="muted">Ainda não há dados suficientes para montar os relatórios.</p>
+      <p class="muted">{{ t('No data for reports') }}</p>
     </div>
   {% endif %}
 </section>

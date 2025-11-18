@@ -28,6 +28,7 @@ I18N = {
         # Cadastro / Onboarding
         "Sign up": "Criar conta",
         "Name": "Nome",
+        "Full name": "Nome completo",
         "Business Type": "Tipo de estabelecimento",
         "Restaurant": "Restaurante / Lanchonete",
         "Retail": "Varejo (moda, calçados, etc.)",
@@ -36,6 +37,7 @@ I18N = {
         "Market": "Mercado / Mercearia",
         "Other": "Outro",
         "Preferred Language": "Idioma preferido",
+        "Language": "Idioma",
         "Portuguese": "Português (Brasil)",
         "English": "Inglês",
         "Spanish": "Espanhol",
@@ -46,6 +48,14 @@ I18N = {
 
         "Onboarding Title": "Conte sobre o seu negócio",
         "Onboarding Subtitle": "Personalizamos o PrevSuite conforme seu segmento.",
+
+        # Texto marketing cadastro
+        "Create account hero title": "Previsão de demanda com IA com PrevSuite!",
+        "Create account hero subtitle": "Cadastre sua conta e comece a controlar estoque, vendas e previsões de forma simples e visual.",
+        "Create account bullet 1": "✔ Acompanhe vendas e estoque em tempo real;",
+        "Create account bullet 2": "✔ Veja quais produtos mais vendem e quais estão encalhados;",
+        "Create account bullet 3": "✔ Use previsões com IA para planejar compras e reduzir desperdício.",
+        "It takes less than 2 minutes": "Leva menos de 2 minutos para começar.",
 
         # Dashboard / KPIs
         "Weekly sales": "Vendas desta Semana",
@@ -62,6 +72,7 @@ I18N = {
 
         # Estoque / Produtos
         "Products": "Produtos",
+        "Product": "Produto",
         "Category": "Categoria",
         "Unit price": "Preço Unit",
         "Unit cost": "Custo Unit",
@@ -91,10 +102,33 @@ I18N = {
 
         # Registrar venda
         "Register Sale": "Registrar venda",
+        "Sale date": "Data da venda",
         "Select...": "Selecione...",
         "Quantity": "Quantidade",
         "Add Item": "Adicionar item",
         "Save": "Salvar",
+
+        # Produtos / menu lateral
+        "Register Product": "Cadastrar produto",
+
+        # Esqueci senha / reset
+        "Reset password": "Redefinir senha",
+        "Reset password subtitle": "Informe seu e-mail e defina uma nova senha.",
+        "New password": "Nova senha",
+        "Confirm new password": "Confirmar nova senha",
+        "Change password": "Alterar senha",
+        "Back to login": "Voltar ao login",
+
+        # Relatórios
+        "Reports subtitle": "Visão geral das vendas, custos e itens mais utilizados.",
+        "Total sales": "Total de vendas",
+        "Revenue (sold items)": "Receita (itens vendidos)",
+        "Total cost": "Custo total",
+        "Estimated profit": "Lucro estimado",
+        "Usage last 28 days": "Uso de itens nos últimos 28 dias",
+        "Usage subtitle": "Lista dos produtos mais utilizados, com quantidade total e custo associado.",
+        "Cost": "Custo",
+        "No data for reports": "Ainda não há dados suficientes para montar os relatórios.",
 
         # Outros
         "Financial Dashboard": "Dashboard Financeiro",
@@ -124,6 +158,7 @@ I18N = {
 
         "Sign up": "Create account",
         "Name": "Name",
+        "Full name": "Full name",
         "Business Type": "Business type",
         "Restaurant": "Restaurant / Diner",
         "Retail": "Retail (fashion, shoes, etc.)",
@@ -132,6 +167,7 @@ I18N = {
         "Market": "Grocery / Market",
         "Other": "Other",
         "Preferred Language": "Preferred language",
+        "Language": "Language",
         "Portuguese": "Portuguese (Brazil)",
         "English": "English",
         "Spanish": "Spanish",
@@ -142,6 +178,13 @@ I18N = {
 
         "Onboarding Title": "Tell us about your business",
         "Onboarding Subtitle": "We personalize PrevSuite by your segment.",
+
+        "Create account hero title": "AI-powered demand forecasting with PrevSuite!",
+        "Create account hero subtitle": "Create your account and start managing inventory, sales and forecasts in a simple, visual way.",
+        "Create account bullet 1": "✔ Track sales and stock in real time;",
+        "Create account bullet 2": "✔ See which products sell more and which are stuck;",
+        "Create account bullet 3": "✔ Use AI forecasts to plan purchases and reduce waste.",
+        "It takes less than 2 minutes": "It takes less than 2 minutes to get started.",
 
         "Weekly sales": "Weekly sales",
         "Weekly revenue": "Weekly revenue",
@@ -156,6 +199,7 @@ I18N = {
         "Stock alerts": "Stock alerts",
 
         "Products": "Products",
+        "Product": "Product",
         "Category": "Category",
         "Unit price": "Unit price",
         "Unit cost": "Unit cost",
@@ -181,11 +225,31 @@ I18N = {
         "Suggested Qty": "Suggested Qty",
         "Est. Cost": "Est. Cost",
 
-        "Register Sale": "Register Sale",
+        "Register Sale": "Register sale",
+        "Sale date": "Sale date",
         "Select...": "Select...",
         "Quantity": "Quantity",
-        "Add Item": "Add Item",
+        "Add Item": "Add item",
         "Save": "Save",
+
+        "Register Product": "Register product",
+
+        "Reset password": "Reset password",
+        "Reset password subtitle": "Enter your email and set a new password.",
+        "New password": "New password",
+        "Confirm new password": "Confirm new password",
+        "Change password": "Change password",
+        "Back to login": "Back to login",
+
+        "Reports subtitle": "Overview of sales, costs and most used items.",
+        "Total sales": "Total sales",
+        "Revenue (sold items)": "Revenue (sold items)",
+        "Total cost": "Total cost",
+        "Estimated profit": "Estimated profit",
+        "Usage last 28 days": "Usage of items in the last 28 days",
+        "Usage subtitle": "List of the most used products, with total quantity and associated cost.",
+        "Cost": "Cost",
+        "No data for reports": "Not enough data to build the reports yet.",
 
         "Financial Dashboard": "Financial Dashboard",
     },
@@ -214,6 +278,7 @@ I18N = {
 
         "Sign up": "Crear cuenta",
         "Name": "Nombre",
+        "Full name": "Nombre completo",
         "Business Type": "Tipo de negocio",
         "Restaurant": "Restaurante / Cafetería",
         "Retail": "Retail (moda, calzado, etc.)",
@@ -222,6 +287,7 @@ I18N = {
         "Market": "Mercado / Tienda",
         "Other": "Otro",
         "Preferred Language": "Idioma preferido",
+        "Language": "Idioma",
         "Portuguese": "Portugués (Brasil)",
         "English": "Inglés",
         "Spanish": "Español",
@@ -232,6 +298,13 @@ I18N = {
 
         "Onboarding Title": "Cuéntanos sobre tu negocio",
         "Onboarding Subtitle": "Personalizamos PrevSuite según tu segmento.",
+
+        "Create account hero title": "Pronóstico de demanda con IA con PrevSuite!",
+        "Create account hero subtitle": "Crea tu cuenta y gestiona inventario, ventas y pronósticos de forma simple y visual.",
+        "Create account bullet 1": "✔ Acompaña ventas e inventario en tiempo real;",
+        "Create account bullet 2": "✔ Ve qué productos venden más y cuáles están parados;",
+        "Create account bullet 3": "✔ Usa pronósticos con IA para planear compras y reducir desperdicio.",
+        "It takes less than 2 minutes": "Toma menos de 2 minutos para empezar.",
 
         "Weekly sales": "Ventas semanales",
         "Weekly revenue": "Ingresos semanales",
@@ -246,6 +319,7 @@ I18N = {
         "Stock alerts": "Alertas de inventario",
 
         "Products": "Productos",
+        "Product": "Producto",
         "Category": "Categoría",
         "Unit price": "Precio unitario",
         "Unit cost": "Costo unitario",
@@ -272,10 +346,30 @@ I18N = {
         "Est. Cost": "Costo Est.",
 
         "Register Sale": "Registrar venta",
+        "Sale date": "Fecha de la venta",
         "Select...": "Seleccione...",
         "Quantity": "Cantidad",
         "Add Item": "Agregar ítem",
         "Save": "Guardar",
+
+        "Register Product": "Registrar producto",
+
+        "Reset password": "Restablecer contraseña",
+        "Reset password subtitle": "Ingresa tu correo y define una nueva contraseña.",
+        "New password": "Nueva contraseña",
+        "Confirm new password": "Confirmar nueva contraseña",
+        "Change password": "Cambiar contraseña",
+        "Back to login": "Volver al inicio de sesión",
+
+        "Reports subtitle": "Visión general de ventas, costos y ítems más utilizados.",
+        "Total sales": "Total de ventas",
+        "Revenue (sold items)": "Ingresos (ítems vendidos)",
+        "Total cost": "Costo total",
+        "Estimated profit": "Beneficio estimado",
+        "Usage last 28 days": "Uso de ítems en los últimos 28 días",
+        "Usage subtitle": "Lista de los productos más utilizados, con cantidad total y costo asociado.",
+        "Cost": "Costo",
+        "No data for reports": "Todavía no hay datos suficientes para generar los informes.",
 
         "Financial Dashboard": "Panel Financiero",
     }

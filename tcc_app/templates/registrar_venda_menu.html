@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
-{# [MOD] Nova tela de registro de venda, com linhas dinâmicas de produtos #}
-
 <section class="page-header">
-  <h1>Registrar venda</h1>
+  <h1>{{ t('Register Sale') }}</h1>
   <p class="muted">
     Selecione os produtos vendidos e a quantidade. O PrevSuite atualiza estoque e métricas automaticamente.
   </p>
@@ -15,30 +13,30 @@
     <h3>Dados da venda</h3>
     <form method="post" id="form-venda" class="form-box" style="margin-top:10px;">
       <label>
-        Data da venda*
+        {{ t('Sale date') }}*
         <input type="date" name="data_venda" required>
       </label>
 
       <div class="sale-items-wrap">
         <div class="sale-item-row">
           <label style="width:100%;">
-            Produto
+            {{ t('Product') }}
             <select name="produto_id[]" required>
-              <option value="">Selecione um produto</option>
+              <option value="">{{ t('Select...') }}</option>
               {% for p in produtos %}
                 <option value="{{ p.id }}">{{ p.nome }}</option>
               {% endfor %}
             </select>
           </label>
           <label style="min-width:120px;">
-            Quantidade
+            {{ t('Quantity') }}
             <input type="number" name="quantidade[]" min="1" value="1" required>
           </label>
         </div>
       </div>
 
-      <button type="button" class="btn" onclick="addSaleRow()">Adicionar outro produto</button>
-      <button type="submit" style="margin-top:8px;">Registrar venda</button>
+      <button type="button" class="btn" onclick="addSaleRow()">{{ t('Add Item') }}</button>
+      <button type="submit" style="margin-top:8px;">{{ t('Register Sale') }}</button>
     </form>
   </article>
 
@@ -56,13 +54,11 @@
 </section>
 
 <script>
-  // [MOD] Script simples para adicionar novas linhas de produto
   function addSaleRow() {
     const wrap = document.querySelector('.sale-items-wrap');
     const first = wrap.querySelector('.sale-item-row');
     const clone = first.cloneNode(true);
 
-    // limpa valores
     clone.querySelectorAll('select,input').forEach(el => {
       if (el.tagName === 'SELECT') {
         el.selectedIndex = 0;

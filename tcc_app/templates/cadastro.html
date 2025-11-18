@@ -11,24 +11,24 @@
   <div class="auth-grid">
     <div class="auth-copy">
       <h1 class="hero-title">
-        Previsão de demanda com IA <span class="grad">com PrevSuite!</span>
+        {{ t('Create account hero title') }}
       </h1>
       <p class="hero-sub">
-        Cadastre sua conta e comece a controlar estoque, vendas e previsões de forma simples e visual.
+        {{ t('Create account hero subtitle') }}
       </p>
       <ul class="auth-bullets">
-        <li>✔ Acompanhe vendas e estoque em tempo real;</li>
-        <li>✔ Veja quais produtos mais vendem e quais estão encalhados;</li>
-        <li>✔ Use previsões com IA para planejar compras e reduzir desperdício.</li>
+        <li>{{ t('Create account bullet 1') }}</li>
+        <li>{{ t('Create account bullet 2') }}</li>
+        <li>{{ t('Create account bullet 3') }}</li>
       </ul>
     </div>
 
     <div class="login-card glass" role="form" aria-labelledby="signupTitle">
       <div class="login-logo">
         <img src="{{ url_for('static', filename='img/prevsuite-logo.svg') }}" alt="Prev Suite">
-        <div class="login-title" id="signupTitle">Criar conta</div>
+        <div class="login-title" id="signupTitle">{{ t('Sign up') }}</div>
       </div>
-      <p class="login-sub">Leva menos de 2 minutos para começar.</p>
+      <p class="login-sub">{{ t('It takes less than 2 minutes') }}</p>
 
       {% if erro %}
         <div class="alert error">
@@ -38,47 +38,47 @@
 
       <form method="POST" class="form-box" autocomplete="on">
         <label>
-          Nome completo
+          {{ t('Full name') }}
           <input type="text" name="nome" required placeholder="Seu nome">
         </label>
 
         <label>
-          E-mail
+          {{ t('Email') }}
           <input type="email" name="email" required placeholder="voce@empresa.com">
         </label>
 
         <label>
-          Senha
+          {{ t('Password') }}
           <input type="password" name="senha" required minlength="6" placeholder="Mínimo 6 caracteres">
         </label>
 
         <div style="display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
           <label>
-            Tipo de negócio
+            {{ t('Business Type') }}
             <select name="biz_type" required>
-              <option value="restaurant">Restaurante / Lanchonete</option>
-              <option value="retail">Varejo (moda, calçados, etc.)</option>
-              <option value="market">Mercado / Mercearia</option>
-              <option value="other" selected>Outro</option>
+              <option value="restaurant">{{ t('Restaurant') }}</option>
+              <option value="retail">{{ t('Retail') }}</option>
+              <option value="market">{{ t('Market') }}</option>
+              <option value="other" selected>{{ t('Other') }}</option>
             </select>
           </label>
 
           <label>
-            Idioma
+            {{ t('Language') }}
             <select name="lang">
-              <option value="pt" selected>Português (Brasil)</option>
-              <option value="en">Inglês</option>
-              <option value="es">Espanhol</option>
+              <option value="pt" selected>{{ t('Portuguese') }}</option>
+              <option value="en">{{ t('English') }}</option>
+              <option value="es">{{ t('Spanish') }}</option>
             </select>
           </label>
         </div>
 
-        <button class="btn primary block" type="submit">Criar conta</button>
+        <button class="btn primary block" type="submit">{{ t('Sign up') }}</button>
       </form>
 
       <div style="margin-top:10px;text-align:center;">
-        <span style="font-size:14px;">Já tem conta?</span>
-        <a class="link" href="{{ url_for('auth_bp.login') }}">Entrar</a>
+        <span style="font-size:14px;">{{ t('Have account?') }}</span>
+        <a class="link" href="{{ url_for('auth_bp.login') }}">{{ t('Sign in now') }}</a>
       </div>
     </div>
   </div>
